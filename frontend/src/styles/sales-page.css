@@ -1,0 +1,237 @@
+/* Sales Page Enhancements */
+
+.sales-page-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-badge.paid {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.status-badge.delivered {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.status-badge.pending {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Sale Card Container */
+.sale-card {
+  background: white;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.sale-card.pending {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+}
+
+.sale-card.delivered {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+}
+
+.sale-card.paid {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+}
+
+.sale-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Sale Card Header */
+.sale-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sale-card-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.sale-card-total {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: right;
+}
+
+/* Sale Card Details */
+.sale-card-details {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.sale-card-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sale-card-detail-row:last-child {
+  border-bottom: none;
+}
+
+/* Action Buttons */
+.sale-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sale-action-btn {
+  flex: 1 1 auto;
+  min-width: 120px;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.sale-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sale-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.sale-action-btn.deliver {
+  background: var(--danger);
+}
+
+.sale-action-btn.pay {
+  background: var(--warning);
+}
+
+.sale-action-btn.edit {
+  background: var(--blue-primary);
+}
+
+/* Section Headers with Status */
+.section-header-with-badge {
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.section-badge {
+  background: currentColor;
+  color: white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pending-section {
+  background: var(--danger-bg);
+  border: 2px solid var(--danger-border);
+}
+
+.pending-section .section-header-with-badge {
+  color: var(--danger);
+}
+
+.delivered-section {
+  background: var(--warning-bg);
+  border: 2px solid var(--warning-border);
+}
+
+.delivered-section .section-header-with-badge {
+  color: var(--warning);
+}
+
+.paid-section {
+  background: var(--success-bg);
+  border: 2px solid var(--success-border);
+}
+
+.paid-section .section-header-with-badge {
+  color: var(--success);
+}
+
+.section-container {
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* Form Section Highlight */
+.new-sale-form {
+  background: var(--blue-lighter);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .sale-card-header {
+    flex-direction: column;
+  }
+
+  .sale-card-total {
+    text-align: left;
+  }
+
+  .sale-card-actions {
+    flex-direction: column;
+  }
+
+  .sale-action-btn {
+    width: 100%;
+  }
+}

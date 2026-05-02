@@ -1,0 +1,106 @@
+/* Transiciones suaves para valores numéricos */
+.stat-value {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text);
+}
+
+.stat-value.updating {
+  opacity: 0.7;
+  color: var(--blue-primary);
+}
+
+/* Transiciones suaves para la tabla */
+table tbody tr {
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+table tbody tr.adding {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Suave para cards */
+.stat-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Fade para when data updates */
+.data-container {
+  transition: opacity 0.3s ease;
+}
+
+.data-container.updating {
+  opacity: 0.85;
+}
+
+/* Animación para cambios en gráficos */
+svg rect {
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+              y 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+svg text {
+  transition: opacity 0.4s ease;
+}
+
+/* Suavidad para números que cambian */
+.number-animate {
+  transition: color 0.4s ease, font-weight 0.3s ease;
+}
+
+.number-animate.highlight {
+  color: var(--blue-primary);
+  font-weight: 700;
+}
+
+/* Para badges y contadores */
+.counter {
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.counter.changed {
+  animation: pulse 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Loading shimmer (opcional) */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
