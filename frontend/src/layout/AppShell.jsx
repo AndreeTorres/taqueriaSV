@@ -127,8 +127,8 @@ export const AppShell = () => {
       <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
         <div className="sidebar-header">
           <span className="brand">
-            <span className="brand-icon" style={{ background: "#E85D04", fontSize: "1rem" }}>🌮</span>
-            Los Campos
+            <span className="brand-icon" style={{ background: "#E85D04", fontSize: "1.2rem" }}>🌮</span>
+            Taqueria Los Campos
           </span>
         </div>
 
