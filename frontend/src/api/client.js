@@ -16,7 +16,7 @@ const buildHeaders = (token, isJson = true) => {
 
 export const apiRequest = async (path, options = {}) => {
   const token = localStorage.getItem("inventory_token");
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${API_URL}/api${path}`, {
     ...options,
     headers: {
       ...buildHeaders(token, options.body !== undefined),
