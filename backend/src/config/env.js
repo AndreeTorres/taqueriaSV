@@ -15,5 +15,5 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1d",
   databaseUrl:
     process.env.DATABASE_URL ||
-    "postgresql://postgres:postgres@localhost:5432/inventario_mvp",
+    "postgresql://postgres.wltzmponhdrmtylmxxiu:Andreets1529$.@aws-1-us-east-1.pooler.supabase.com:5432/postgres",
 };
