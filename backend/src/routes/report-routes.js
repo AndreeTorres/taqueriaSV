@@ -53,14 +53,14 @@ router.get(
 router.get(
   "/top-products",
   asyncHandler(async (req, res) => {
-    res.json(await getTopProducts(req.user.businessId));
+    res.json(await getTopProducts(req.query.startDate, req.query.endDate, req.user.businessId));
   })
 );
 
 router.get(
   "/movements",
   asyncHandler(async (req, res) => {
-    res.json(await getMovementReport(req.user.businessId));
+    res.json(await getMovementReport(req.query.startDate, req.query.endDate, req.user.businessId));
   })
 );
 

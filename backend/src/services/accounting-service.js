@@ -144,9 +144,9 @@ export const createGasto = async ({ description, amount, date, type = 'operativo
 
   const result = await pool.query(
     `INSERT INTO purchases (supplier_id, purchase_date, total, user_id, description, type, business_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING id, description, total AS amount, purchase_date AS date, type`,
-    [supplierId, date || new Date(), amount, userId, description, type, businessId]
+     VALUES ($1, $2::date, $3, $4, $5, $6, $7)
+     RETURNING id, description, total AS amount, purchase_date::date AS date, type`,
+    [supplierId, date || new Date().toISOString().split('T')[0], amount, userId, description, type, businessId]
   );
   const r = result.rows[0];
   return { id: r.id, description: r.description, amount: Number(r.amount), date: r.date, type: r.type };
@@ -155,10 +155,10 @@ export const createGasto = async ({ description, amount, date, type = 'operativo
 export const updateGasto = async ({ description, amount, date, type }, gastoId, businessId) => {
   const result = await pool.query(
     `UPDATE purchases
-     SET description = $1, total = $2, purchase_date = $3, type = $4
+     SET description = $1, total = $2, purchase_date = $3::date, type = $4
      WHERE id = $5 AND description IS NOT NULL AND business_id = $6
-     RETURNING id, description, total AS amount, purchase_date AS date, type`,
-    [description, amount, date || new Date(), type, gastoId, businessId]
+     RETURNING id, description, total AS amount, purchase_date::date AS date, type`,
+    [description, amount, date || new Date().toISOString().split('T')[0], type, gastoId, businessId]
   );
   if (result.rows.length === 0) throw new Error("Gasto no encontrado.");
   const r = result.rows[0];

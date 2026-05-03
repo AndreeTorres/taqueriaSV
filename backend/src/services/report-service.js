@@ -9,12 +9,17 @@ const buildDateRange = (column, startDate, endDate, startIndex = 1) => {
 
   if (startDate) {
     values.push(startDate);
-    clause += `${column} >= $${idx++}`;
+    clause += `${column}::date >= $${idx++}`;
   }
 
   if (endDate) {
-    values.push(endDate);
-    clause += `${startDate ? " AND " : ""}${column} <= $${idx++}`;
+    // Incrementar un día para incluir todo el día final
+    const nextDay = new Date(endDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const endDateNextDay = nextDay.toISOString().split('T')[0];
+    
+    values.push(endDateNextDay);
+    clause += `${startDate ? " AND " : ""}${column}::date < $${idx++}`;
   }
 
   return { clause, values };
@@ -86,30 +91,32 @@ export const getProfitSummary = async (startDate, endDate, businessId) => {
   };
 };
 
-export const getTopProducts = async (businessId) => {
+export const getTopProducts = async (startDate, endDate, businessId) => {
+  const range = buildDateRange("s.sale_date", startDate, endDate, 2);
   const result = await pool.query(
     `SELECT p.name, SUM(sd.quantity) AS quantity_sold, SUM(sd.total) AS total_sales
      FROM sale_details sd
      JOIN products p ON p.id = sd.product_id
      JOIN sales s ON s.id = sd.sale_id
-     WHERE s.business_id = $1
+     WHERE s.business_id = $1${range.clause}
      GROUP BY p.id
      ORDER BY quantity_sold DESC
      LIMIT 10`,
-    [businessId]
+    [businessId, ...range.values]
   );
   return result.rows;
 };
 
-export const getMovementReport = async (businessId) => {
+export const getMovementReport = async (startDate, endDate, businessId) => {
+  const range = buildDateRange("im.movement_date", startDate, endDate, 2);
   const result = await pool.query(
     `SELECT im.*, p.name AS product_name, u.name AS user_name
      FROM inventory_movements im
      JOIN products p ON p.id = im.product_id
      JOIN users u ON u.id = im.user_id
-     WHERE im.business_id = $1
+     WHERE im.business_id = $1${range.clause}
      ORDER BY im.movement_date DESC`,
-    [businessId]
+    [businessId, ...range.values]
   );
   return result.rows;
 };
