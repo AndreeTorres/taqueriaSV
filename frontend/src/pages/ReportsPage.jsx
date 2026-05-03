@@ -4,7 +4,7 @@ import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
 import { StatCard } from "../components/StatCard";
 import { Table } from "../components/Table";
-import { currency, dateTime } from "../utils/format";
+import { currency, date, dateTime } from "../utils/format";
 
 export const ReportsPage = () => {
   const [range, setRange] = useState({ startDate: "", endDate: "" });
@@ -35,8 +35,8 @@ export const ReportsPage = () => {
       api.get(`/reports/purchases${params ? `?${params}` : ""}`),
       api.get(`/reports/sales${params ? `?${params}` : ""}`),
       api.get(`/reports/profit${params ? `?${params}` : ""}`),
-      api.get("/reports/top-products"),
-      api.get("/reports/movements"),
+      api.get(`/reports/top-products${params ? `?${params}` : ""}`),
+      api.get(`/reports/movements${params ? `?${params}` : ""}`),
     ]);
 
     setStock(stockData);
@@ -103,7 +103,7 @@ export const ReportsPage = () => {
           <Table
             columns={[
               { key: "id", label: "ID" },
-              { key: "purchase_date", label: "Fecha", render: (row) => dateTime(row.purchase_date) },
+              { key: "purchase_date", label: "Fecha", render: (row) => date(row.purchase_date) },
               { key: "total", label: "Total", render: (row) => currency(row.total) },
             ]}
             rows={purchases}
@@ -114,7 +114,7 @@ export const ReportsPage = () => {
           <Table
             columns={[
               { key: "id", label: "ID" },
-              { key: "sale_date", label: "Fecha", render: (row) => dateTime(row.sale_date) },
+              { key: "sale_date", label: "Fecha", render: (row) => date(row.sale_date) },
               { key: "payment_method", label: "Pago" },
               { key: "total", label: "Total", render: (row) => currency(row.total) },
             ]}
@@ -130,7 +130,7 @@ export const ReportsPage = () => {
             { key: "movement_type", label: "Tipo" },
             { key: "quantity", label: "Cantidad" },
             { key: "user_name", label: "Usuario" },
-            { key: "movement_date", label: "Fecha", render: (row) => dateTime(row.movement_date) },
+            { key: "movement_date", label: "Fecha", render: (row) => date(row.movement_date) },
           ]}
           rows={movements}
         />

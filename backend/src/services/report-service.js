@@ -13,13 +13,8 @@ const buildDateRange = (column, startDate, endDate, startIndex = 1) => {
   }
 
   if (endDate) {
-    // Incrementar un día para incluir todo el día final
-    const nextDay = new Date(endDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-    const endDateNextDay = nextDay.toISOString().split('T')[0];
-    
-    values.push(endDateNextDay);
-    clause += `${startDate ? " AND " : ""}${column}::date < $${idx++}`;
+    values.push(endDate);
+    clause += `${startDate ? " AND " : ""}${column}::date <= $${idx++}`;
   }
 
   return { clause, values };
