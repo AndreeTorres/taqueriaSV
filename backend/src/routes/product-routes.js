@@ -19,7 +19,7 @@ router.get(
       limit: req.query.limit ? parseInt(req.query.limit) : undefined,
       offset: req.query.offset ? parseInt(req.query.offset) : undefined,
     };
-    res.json(await listProducts(filters));
+    res.json(await listProducts(filters, req.user.businessId));
   })
 );
 
@@ -27,7 +27,7 @@ router.post(
   "/",
   authorize("administrador", "taquero"),
   asyncHandler(async (req, res) => {
-    res.status(201).json(await createProduct(req.body));
+    res.status(201).json(await createProduct(req.body, req.user.businessId));
   })
 );
 
@@ -35,7 +35,7 @@ router.put(
   "/:id",
   authorize("administrador", "taquero"),
   asyncHandler(async (req, res) => {
-    res.json(await updateProduct(Number(req.params.id), req.body));
+    res.json(await updateProduct(Number(req.params.id), req.body, req.user.businessId));
   })
 );
 
@@ -43,7 +43,7 @@ router.patch(
   "/:id",
   authorize("administrador", "taquero"),
   asyncHandler(async (req, res) => {
-    res.json(await updateProduct(Number(req.params.id), req.body));
+    res.json(await updateProduct(Number(req.params.id), req.body, req.user.businessId));
   })
 );
 
@@ -51,7 +51,7 @@ router.delete(
   "/:id",
   authorize("administrador"),
   asyncHandler(async (req, res) => {
-    res.json(await deleteProduct(Number(req.params.id)));
+    res.json(await deleteProduct(Number(req.params.id), req.user.businessId));
   })
 );
 

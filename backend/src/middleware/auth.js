@@ -13,7 +13,7 @@ export const authenticate = async (req, _res, next) => {
     const token = authHeader.split(" ")[1];
     const payload = verifyToken(token);
     const result = await pool.query(
-      `SELECT u.id, u.name, u.email, u.role_id, r.name AS role_name
+      `SELECT u.id, u.name, u.email, u.role_id, u.business_id, r.name AS role_name
        FROM users u
        JOIN roles r ON r.id = u.role_id
        WHERE u.id = $1 AND u.status = 'active'`,
@@ -30,6 +30,7 @@ export const authenticate = async (req, _res, next) => {
       email: result.rows[0].email,
       roleId: result.rows[0].role_id,
       role: result.rows[0].role_name,
+      businessId: result.rows[0].business_id,
     };
 
     next();

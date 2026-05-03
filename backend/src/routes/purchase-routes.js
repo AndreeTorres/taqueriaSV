@@ -11,8 +11,8 @@ router.use(authenticate);
 router.get(
   "/",
   authorize("administrador", "encargado de inventario"),
-  asyncHandler(async (_req, res) => {
-    res.json(await listPurchases());
+  asyncHandler(async (req, res) => {
+    res.json(await listPurchases(req.user.businessId));
   })
 );
 
@@ -27,7 +27,7 @@ router.post(
       positiveNumber(item.quantity, "quantity");
       positiveNumber(item.unit_price, "unit_price");
     });
-    res.status(201).json(await createPurchase(req.body, req.user.id));
+    res.status(201).json(await createPurchase(req.body, req.user.id, req.user.businessId));
   })
 );
 

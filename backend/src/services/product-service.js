@@ -5,10 +5,10 @@ import { required, positiveNumber, stringLength, enumValue } from "../utils/vali
 const PRODUCT_TYPES = ["producto para venta", "ingrediente", "insumo"];
 const STATUSES = ["active", "inactive"];
 
-export const listProducts = async (filters = {}) => {
-  let query = `SELECT p.*, c.name AS category_name FROM products p JOIN categories c ON c.id = p.category_id WHERE 1=1`;
-  const params = [];
-  let paramIndex = 1;
+export const listProducts = async (filters = {}, businessId) => {
+  let query = `SELECT p.*, c.name AS category_name FROM products p JOIN categories c ON c.id = p.category_id WHERE p.business_id = $1`;
+  const params = [businessId];
+  let paramIndex = 2;
 
   if (filters.search) {
     query += ` AND (p.name ILIKE $${paramIndex} OR c.name ILIKE $${paramIndex})`;
@@ -55,12 +55,12 @@ export const listProducts = async (filters = {}) => {
   return result.rows;
 };
 
-export const createProduct = async (payload) => {
+export const createProduct = async (payload, businessId) => {
   required(payload.name, "nombre");
   required(payload.category_id, "categoría");
   required(payload.product_type, "tipo de producto");
   required(payload.unit_measure, "unidad de medida");
-  
+
   stringLength(payload.name, 1, 150, "nombre");
   positiveNumber(payload.purchase_price, "precio de compra", true);
   positiveNumber(payload.sale_price, "precio de venta", true);
@@ -70,8 +70,8 @@ export const createProduct = async (payload) => {
 
   const result = await pool.query(
     `INSERT INTO products
-      (name, category_id, product_type, unit_measure, purchase_price, sale_price, stock_current, stock_minimum, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      (name, category_id, product_type, unit_measure, purchase_price, sale_price, stock_current, stock_minimum, status, business_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      RETURNING *`,
     [
       payload.name.trim(),
@@ -83,12 +83,13 @@ export const createProduct = async (payload) => {
       payload.stock_current ?? 0,
       payload.stock_minimum ?? 0,
       payload.status ?? "active",
+      businessId,
     ]
   );
   return result.rows[0];
 };
 
-export const updateProduct = async (id, payload) => {
+export const updateProduct = async (id, payload, businessId) => {
   if (payload.name) stringLength(payload.name, 1, 150, "nombre");
   if (payload.purchase_price !== undefined) positiveNumber(payload.purchase_price, "precio de compra", true);
   if (payload.sale_price !== undefined) positiveNumber(payload.sale_price, "precio de venta", true);
@@ -117,9 +118,9 @@ export const updateProduct = async (id, payload) => {
   const result = await pool.query(
     `UPDATE products
      SET ${setClause}, updated_at = NOW()
-     WHERE id = $${values.length + 1}
+     WHERE id = $${values.length + 1} AND business_id = $${values.length + 2}
      RETURNING *`,
-    [...values, id]
+    [...values, id, businessId]
   );
 
   if (!result.rows[0]) {
@@ -129,10 +130,10 @@ export const updateProduct = async (id, payload) => {
   return result.rows[0];
 };
 
-export const deleteProduct = async (id) => {
+export const deleteProduct = async (id, businessId) => {
   const result = await pool.query(
-    `DELETE FROM products WHERE id = $1 RETURNING id, name`,
-    [id]
+    `DELETE FROM products WHERE id = $1 AND business_id = $2 RETURNING id, name`,
+    [id, businessId]
   );
 
   if (!result.rows[0]) {

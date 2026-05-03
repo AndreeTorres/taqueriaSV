@@ -1,39 +1,50 @@
 import { pool } from "../config/db.js";
 
-export const getDashboardSummary = async () => {
+export const getDashboardSummary = async (businessId) => {
   const [sales, purchases, lowStock, totalProducts, lastMovements, salesMonth, purchasesMonth, pendingOrders] = await Promise.all([
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*)::INT AS count
-       FROM sales WHERE DATE(sale_date) = CURRENT_DATE`
+       FROM sales WHERE DATE(sale_date) = CURRENT_DATE AND business_id = $1`,
+      [businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total
-       FROM purchases WHERE DATE(purchase_date) = CURRENT_DATE`
+       FROM purchases WHERE DATE(purchase_date) = CURRENT_DATE AND business_id = $1`,
+      [businessId]
     ),
     pool.query(
       `SELECT id, name, stock_current, stock_minimum
        FROM products
-       WHERE status = 'active' AND stock_current <= stock_minimum
-       ORDER BY stock_current ASC LIMIT 5`
+       WHERE status = 'active' AND stock_current <= stock_minimum AND business_id = $1
+       ORDER BY stock_current ASC LIMIT 5`,
+      [businessId]
     ),
-    pool.query(`SELECT COUNT(*)::INT AS total FROM products WHERE status = 'active'`),
+    pool.query(
+      `SELECT COUNT(*)::INT AS total FROM products WHERE status = 'active' AND business_id = $1`,
+      [businessId]
+    ),
     pool.query(
       `SELECT im.id, im.movement_type, im.quantity, im.movement_date, p.name AS product_name
        FROM inventory_movements im
        JOIN products p ON p.id = im.product_id
-       ORDER BY im.movement_date DESC, im.id DESC LIMIT 8`
+       WHERE im.business_id = $1
+       ORDER BY im.movement_date DESC, im.id DESC LIMIT 8`,
+      [businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total
-       FROM sales WHERE sale_date >= DATE_TRUNC('month', CURRENT_DATE)`
+       FROM sales WHERE sale_date >= DATE_TRUNC('month', CURRENT_DATE) AND business_id = $1`,
+      [businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total
-       FROM purchases WHERE purchase_date >= DATE_TRUNC('month', CURRENT_DATE)`
+       FROM purchases WHERE purchase_date >= DATE_TRUNC('month', CURRENT_DATE) AND business_id = $1`,
+      [businessId]
     ),
     pool.query(
       `SELECT COUNT(*)::INT AS total FROM sales
-       WHERE status IN ('pendiente', 'en_cocina') AND DATE(sale_date) = CURRENT_DATE`
+       WHERE status IN ('pendiente', 'en_cocina') AND DATE(sale_date) = CURRENT_DATE AND business_id = $1`,
+      [businessId]
     ),
   ]);
 
