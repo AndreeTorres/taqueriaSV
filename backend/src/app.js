@@ -10,6 +10,7 @@ import purchaseRoutes from "./routes/purchase-routes.js";
 import recipeRoutes from "./routes/recipe-routes.js";
 import reportRoutes from "./routes/report-routes.js";
 import saleRoutes from "./routes/sale-routes.js";
+import exportRoutes from "./routes/export-routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.js";
 
@@ -36,6 +37,7 @@ app.use("/api/recipes", recipeRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/accounting", accountingRoutes);
+app.use("/api/export", exportRoutes);
 
 app.use(errorHandler);
 
