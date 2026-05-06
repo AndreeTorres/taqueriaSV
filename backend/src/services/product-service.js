@@ -34,10 +34,6 @@ export const listProducts = async (filters = {}, businessId) => {
     paramIndex++;
   }
 
-  if (filters.low_stock === "true") {
-    query += ` AND p.stock_current <= p.stock_minimum`;
-  }
-
   query += ` ORDER BY p.id DESC`;
 
   if (filters.limit) {
@@ -64,14 +60,13 @@ export const createProduct = async (payload, businessId) => {
   stringLength(payload.name, 1, 150, "nombre");
   positiveNumber(payload.purchase_price, "precio de compra", true);
   positiveNumber(payload.sale_price, "precio de venta", true);
-  positiveNumber(payload.stock_minimum, "stock mínimo", true);
   enumValue(payload.product_type, PRODUCT_TYPES, "tipo de producto");
   enumValue(payload.status ?? "active", STATUSES, "estado");
 
   const result = await pool.query(
     `INSERT INTO products
-      (name, category_id, product_type, unit_measure, purchase_price, sale_price, stock_current, stock_minimum, status, business_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      (name, category_id, product_type, unit_measure, purchase_price, sale_price, status, business_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
      RETURNING *`,
     [
       payload.name.trim(),
@@ -80,8 +75,6 @@ export const createProduct = async (payload, businessId) => {
       payload.unit_measure,
       payload.purchase_price ?? 0,
       payload.sale_price ?? 0,
-      payload.stock_current ?? 0,
-      payload.stock_minimum ?? 0,
       payload.status ?? "active",
       businessId,
     ]
@@ -93,7 +86,6 @@ export const updateProduct = async (id, payload, businessId) => {
   if (payload.name) stringLength(payload.name, 1, 150, "nombre");
   if (payload.purchase_price !== undefined) positiveNumber(payload.purchase_price, "precio de compra", true);
   if (payload.sale_price !== undefined) positiveNumber(payload.sale_price, "precio de venta", true);
-  if (payload.stock_minimum !== undefined) positiveNumber(payload.stock_minimum, "stock mínimo", true);
   if (payload.product_type) enumValue(payload.product_type, PRODUCT_TYPES, "tipo de producto");
   if (payload.status) enumValue(payload.status, STATUSES, "estado");
 
@@ -104,8 +96,6 @@ export const updateProduct = async (id, payload, businessId) => {
     "unit_measure",
     "purchase_price",
     "sale_price",
-    "stock_current",
-    "stock_minimum",
     "status",
   ].filter((field) => payload[field] !== undefined);
 

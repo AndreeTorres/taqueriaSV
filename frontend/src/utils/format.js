@@ -9,7 +9,11 @@ export const dateTime = (value) =>
 
 export const date = (value) => {
   if (!value) return "-";
-  const d = String(value).slice(0, 10);
-  const [year, month, day] = d.split("-");
+  // Parsear el string de fecha y asegurarse de que se interprete en la zona horaria local
+  const dateObj = new Date(value);
+  // Obtener la fecha en formato local sin afectar por timezone
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
   return `${day}/${month}/${year}`;
 };

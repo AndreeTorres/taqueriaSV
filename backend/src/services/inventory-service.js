@@ -37,24 +37,8 @@ export const createManualMovement = async (payload, userId, businessId) =>
     }
 
     const quantity = Number(payload.quantity);
-    const isExit = ["internal_consumption", "loss"].includes(payload.movement_type);
-    const stockDelta = payload.movement_type === "manual_adjustment" ? quantity : isExit ? -quantity : quantity;
 
-    if (isExit && Number(product.stock_current) < quantity) {
-      throw new AppError("Stock insuficiente para registrar la salida.");
-    }
-
-    const updatedStock = Number(product.stock_current) + stockDelta;
-
-    if (updatedStock < 0) {
-      throw new AppError("El ajuste deja el stock en un valor invalido.");
-    }
-
-    await client.query(
-      "UPDATE products SET stock_current = $1, updated_at = NOW() WHERE id = $2 AND business_id = $3",
-      [updatedStock, payload.product_id, businessId]
-    );
-
+    // Registrar el movimiento de inventario sin actualizar stock_current (campo eliminado)
     const movementResult = await client.query(
       `INSERT INTO inventory_movements
        (product_id, movement_type, quantity, movement_date, user_id, observation, business_id)
@@ -75,14 +59,7 @@ export const createManualMovement = async (payload, userId, businessId) =>
   });
 
 export const getAlerts = async (businessId) => {
-  const [lowStockResult, recipesResult, inactiveResult] = await Promise.all([
-    pool.query(
-      `SELECT id, name, stock_current, stock_minimum
-       FROM products
-       WHERE status = 'active' AND stock_current <= stock_minimum AND business_id = $1
-       ORDER BY stock_current ASC`,
-      [businessId]
-    ),
+  const [recipesResult, inactiveResult] = await Promise.all([
     pool.query(
       `SELECT p.id AS product_id, p.name AS recipe_name
        FROM recipes r
@@ -106,7 +83,7 @@ export const getAlerts = async (businessId) => {
 
   for (const recipe of recipesResult.rows) {
     const items = await pool.query(
-      `SELECT ri.quantity, i.name AS ingredient_name, i.stock_current
+      `SELECT ri.quantity, i.name AS ingredient_name
        FROM recipe_items ri
        JOIN products i ON i.id = ri.ingredient_product_id
        WHERE ri.recipe_id = (
@@ -115,17 +92,17 @@ export const getAlerts = async (businessId) => {
       [recipe.product_id, businessId]
     );
 
-    const missing = items.rows.filter((item) => Number(item.stock_current) < Number(item.quantity));
-    if (missing.length) {
+    // Sin campos de stock, retornamos lista vacía o información parcial
+    if (items.rows.length) {
       insufficientIngredients.push({
         recipe: recipe.recipe_name,
-        missing,
+        missing: items.rows,
       });
     }
   }
 
   return {
-    lowStock: lowStockResult.rows,
+    lowStock: [],
     insufficientIngredients,
     productsWithoutMovement: inactiveResult.rows,
   };

@@ -6,9 +6,9 @@ import { StatCard } from "../components/StatCard";
 import { currency } from "../utils/format";
 import "../styles/accounting-page.css";
 
-const BAR_H = 140;
-const BAR_W = 32;
-const GAP = 10;
+const BAR_H = 120;
+const BAR_W = 28;
+const GAP = 8;
 
 const BarChart = ({ data, period }) => {
   if (!data || data.length === 0) return <p className="muted" style={{ textAlign: "center", padding: "2rem" }}>Sin datos</p>;
@@ -382,11 +382,11 @@ export const ContabilidadPage = () => {
     <div className="page">
       <PageHeader
         title="Contabilidad"
-        subtitle={`Análisis financiero — ${period === "week" ? "últimos 7 días" : "últimos 30 días"}`}
+        subtitle={`Análisis financiero — ${period === "week" ? "semana actual" : "mes actual"}`}
         actions={
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button className={period === "week" ? "" : "secondary-button"} onClick={() => setPeriod("week")}>7 días</button>
-            <button className={period === "month" ? "" : "secondary-button"} onClick={() => setPeriod("month")}>30 días</button>
+            <button className={period === "week" ? "" : "secondary-button"} onClick={() => setPeriod("week")}>Semana</button>
+            <button className={period === "month" ? "" : "secondary-button"} onClick={() => setPeriod("month")}>Mes</button>
           </div>
         }
       />
@@ -395,11 +395,10 @@ export const ContabilidadPage = () => {
 
       {!loading && data && (
         <div className={`data-container ${isUpdating ? 'updating' : ''}`} style={{ transition: 'opacity 0.3s ease' }}>
-          <div className="stats-grid">
-            <StatCard label="Ingresos (ventas)" value={<AnimatedValue value={data.ingresos} format={currency} />} accent="success" />
-            <StatCard label="Egresos (gastos)" value={<AnimatedValue value={data.egresos} format={currency} />} accent="warning" />
+          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: '100%', margin: '0 auto' }}>
             <StatCard label="Ganancia neta" value={<AnimatedValue value={data.ganancia} format={currency} />} accent={gananciasColor} />
-            <StatCard label="Margen de ganancia" value={<AnimatedValue value={data.margen} format={(v) => `${v}%`} />} accent={margenColor} />
+            <StatCard label="Ingresos (ventas)" value={<AnimatedValue value={data.ingresos} format={currency} />} accent="success" />
+            <StatCard label="Egresos totales" value={<AnimatedValue value={data.egresos} format={currency} />} accent="warning" />
           </div>
 
           <div className="three-column">
@@ -412,35 +411,19 @@ export const ContabilidadPage = () => {
               <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--text)" }}>{data.purchasesCount}</p>
             </div>
             <div className="card" style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>Ticket promedio</p>
-              <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--text)" }}>
-                {data.salesCount > 0 ? currency(data.ingresos / data.salesCount) : "$0.00"}
+              <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>Método más usado</p>
+              <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text)", textTransform: "capitalize" }}>
+                {data.paymentBreakdown.length > 0 ? data.paymentBreakdown[0].payment_method : "—"}
               </p>
+              {data.paymentBreakdown.length > 0 && (
+                <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>
+                  {data.paymentBreakdown[0].count} ventas
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="two-column">
-            <SectionCard title="Ingresos vs Egresos por día">
-              <BarChart data={data.dailyData} period={period} />
-            </SectionCard>
-            <SectionCard title="Métodos de pago">
-              <DonutChart segments={paymentSegments} size={130} />
-              <div style={{ marginTop: "1rem" }}>
-                {data.paymentBreakdown.map((p, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "0.45rem 0", borderBottom: "1px solid var(--border)", fontSize: "0.875rem" }}>
-                    <span style={{ textTransform: "capitalize" }}>{p.payment_method}</span>
-                    <span style={{ display: "flex", gap: "1rem" }}>
-                      <span style={{ color: "var(--text-muted)" }}>{p.count} ventas</span>
-                      <strong>{currency(p.total)}</strong>
-                    </span>
-                  </div>
-                ))}
-                {data.paymentBreakdown.length === 0 && <p className="muted" style={{ textAlign: "center", padding: "1rem" }}>Sin ventas en el período</p>}
-              </div>
-            </SectionCard>
-          </div>
-
-          <SectionCard title="Platillos más vendidos">
+          <SectionCard title="Productos más vendidos">
             {data.topProducts.length === 0 && (
               <p className="muted" style={{ textAlign: "center", padding: "1.5rem" }}>Sin ventas en el período</p>
             )}

@@ -63,11 +63,10 @@ export const createPurchase = async (payload, userId, businessId) =>
 
       await client.query(
         `UPDATE products
-         SET stock_current = stock_current + $1,
-             purchase_price = $2,
+         SET purchase_price = $1,
              updated_at = NOW()
-         WHERE id = $3 AND business_id = $4`,
-        [item.quantity, item.unit_price, item.product_id, businessId]
+         WHERE id = $2 AND business_id = $3`,
+        [item.unit_price, item.product_id, businessId]
       );
 
       await client.query(

@@ -42,7 +42,7 @@ export const exportSales = async (businessId, format = "csv") => {
 
 export const exportProducts = async (businessId, format = "csv") => {
   const result = await pool.query(
-    `SELECT p.id, p.name, c.name AS category, p.product_type, p.unit_measure, p.purchase_price, p.sale_price, p.stock_current, p.stock_minimum, p.status
+    `SELECT p.id, p.name, c.name AS category, p.product_type, p.unit_measure, p.purchase_price, p.sale_price, p.status
      FROM products p
      JOIN categories c ON c.id = p.category_id
      WHERE p.business_id = $1
@@ -50,7 +50,7 @@ export const exportProducts = async (businessId, format = "csv") => {
     [businessId]
   );
 
-  const headers = ["id", "name", "category", "product_type", "unit_measure", "purchase_price", "sale_price", "stock_current", "stock_minimum", "status"];
+  const headers = ["id", "name", "category", "product_type", "unit_measure", "purchase_price", "sale_price", "status"];
   
   if (format === "json") {
     return convertToJSON(result.rows);
@@ -107,7 +107,7 @@ export const exportAll = async (businessId, format = "csv") => {
       [businessId]
     ),
     pool.query(
-      `SELECT p.id, p.name, c.name AS category, p.product_type, p.unit_measure, p.purchase_price, p.sale_price, p.stock_current, p.stock_minimum, p.status
+      `SELECT p.id, p.name, c.name AS category, p.product_type, p.unit_measure, p.purchase_price, p.sale_price, p.status
        FROM products p
        JOIN categories c ON c.id = p.category_id
        WHERE p.business_id = $1
@@ -155,7 +155,7 @@ export const exportAll = async (businessId, format = "csv") => {
 
   // Productos
   csvContent += "=== PRODUCTOS ===\n";
-  const productsHeaders = ["id", "name", "category", "product_type", "unit_measure", "purchase_price", "sale_price", "stock_current", "stock_minimum", "status"];
+  const productsHeaders = ["id", "name", "category", "product_type", "unit_measure", "purchase_price", "sale_price", "status"];
   csvContent += convertToCSV(productsResult.rows, productsHeaders) + "\n\n";
 
   // Inventario

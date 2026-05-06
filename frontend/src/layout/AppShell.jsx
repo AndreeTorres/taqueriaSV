@@ -32,7 +32,7 @@ const navItems = [
   },
   {
     to: "/products",
-    label: "Platillos",
+    label: "Productos",
     roles: ["administrador", "taquero"],
     icon: (
       <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
@@ -70,7 +70,7 @@ const navItems = [
 const pageTitles = {
   "/": "Dashboard",
   "/ventas": "Ventas",
-  "/products": "Platillos",
+  "/products": "Productos",
   "/contabilidad": "Contabilidad",
   "/reports": "Reportes",
 };

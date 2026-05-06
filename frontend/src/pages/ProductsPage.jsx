@@ -12,8 +12,6 @@ const productFormInitial = {
   unit_measure: "unidad",
   purchase_price: 0,
   sale_price: 0,
-  stock_current: 0,
-  stock_minimum: 0,
   status: "active",
 };
 
@@ -26,8 +24,6 @@ const EditProductModal = ({ product, categories, onSave, onCancel }) => {
     unit_measure: product.unit_measure || "unidad",
     purchase_price: product.purchase_price || 0,
     sale_price: product.sale_price || 0,
-    stock_current: product.stock_current || 0,
-    stock_minimum: product.stock_minimum || 0,
     status: product.status || "active",
   });
   const [saving, setSaving] = useState(false);
@@ -43,8 +39,6 @@ const EditProductModal = ({ product, categories, onSave, onCancel }) => {
         category_id: Number(form.category_id),
         purchase_price: Number(form.purchase_price),
         sale_price: Number(form.sale_price),
-        stock_current: Number(form.stock_current),
-        stock_minimum: Number(form.stock_minimum),
       });
     } catch (err) {
       setError(err.message);
@@ -173,29 +167,6 @@ const EditProductModal = ({ product, categories, onSave, onCancel }) => {
             </label>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1.5rem" }}>
-            <label>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Stock Actual</span>
-              <input
-                type="number"
-                step="0.01"
-                value={form.stock_current}
-                onChange={(e) => setForm({ ...form, stock_current: e.target.value })}
-                style={{ width: "100%", marginTop: "0.3rem" }}
-              />
-            </label>
-            <label>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Stock Mínimo</span>
-              <input
-                type="number"
-                step="0.01"
-                value={form.stock_minimum}
-                onChange={(e) => setForm({ ...form, stock_minimum: e.target.value })}
-                style={{ width: "100%", marginTop: "0.3rem" }}
-              />
-            </label>
-          </div>
-
           {error && <div className="alert error" style={{ marginBottom: "1rem" }}>{error}</div>}
 
           <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -270,8 +241,6 @@ export const ProductsPage = () => {
         category_id: Number(form.category_id),
         purchase_price: Number(form.purchase_price),
         sale_price: Number(form.sale_price),
-        stock_current: Number(form.stock_current),
-        stock_minimum: Number(form.stock_minimum),
       });
       setForm(productFormInitial);
       setMessage("✓ Producto creado correctamente.");
@@ -371,8 +340,6 @@ export const ProductsPage = () => {
             </select>
             <input type="number" step="0.01" placeholder="Precio compra" value={form.purchase_price} onChange={(e) => setForm({ ...form, purchase_price: e.target.value })} />
             <input type="number" step="0.01" placeholder="Precio venta" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} />
-            <input type="number" step="0.01" placeholder="Stock actual" value={form.stock_current} onChange={(e) => setForm({ ...form, stock_current: e.target.value })} />
-            <input type="number" step="0.01" placeholder="Stock minimo" value={form.stock_minimum} onChange={(e) => setForm({ ...form, stock_minimum: e.target.value })} />
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="active">Activo</option>
               <option value="inactive">Inactivo</option>
@@ -417,7 +384,6 @@ export const ProductsPage = () => {
                 <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>Unidad</th>
                 <th style={{ textAlign: "right", padding: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>Compra</th>
                 <th style={{ textAlign: "right", padding: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>Venta</th>
-                <th style={{ textAlign: "right", padding: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>Stock</th>
                 <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>Estado</th>
                 <th style={{ textAlign: "center", padding: "0.75rem", fontWeight: 600, color: "var(--text-muted)" }}>Acciones</th>
               </tr>
@@ -450,14 +416,6 @@ export const ProductsPage = () => {
                   <td style={{ padding: "0.75rem", textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>{product.unit_measure}</td>
                   <td style={{ padding: "0.75rem", textAlign: "right", fontWeight: 500 }}>{currency(product.purchase_price)}</td>
                   <td style={{ padding: "0.75rem", textAlign: "right", fontWeight: 600, color: "var(--success)" }}>{currency(product.sale_price)}</td>
-                  <td style={{
-                    padding: "0.75rem",
-                    textAlign: "right",
-                    fontWeight: 600,
-                    color: product.stock_current < product.stock_minimum ? "var(--danger)" : "var(--success)",
-                  }}>
-                    {product.stock_current}
-                  </td>
                   <td style={{ padding: "0.75rem", textAlign: "center" }}>
                     <span style={{
                       display: "inline-block",

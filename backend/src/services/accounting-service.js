@@ -1,79 +1,81 @@
 import { pool } from "../config/db.js";
 
 export const getAccountingSummary = async ({ period = "month" } = {}, businessId) => {
-  const interval = period === "week" ? "7 days" : "30 days";
+  const daysBack = period === "week" ? 7 : 30;
+  const pastDate = new Date();
+  pastDate.setDate(pastDate.getDate() - daysBack);
 
   const [ingresosMes, egresosMes, ingresosAyer, egresosAyer, dailyData, topProducts, paymentBreakdown] = await Promise.all([
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*)::INT AS count
        FROM sales
-       WHERE sale_date >= NOW() - INTERVAL '${interval}' AND business_id = $1`,
-      [businessId]
+       WHERE sale_date >= $1 AND business_id = $2`,
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*)::INT AS count
        FROM purchases
-       WHERE purchase_date >= NOW() - INTERVAL '${interval}'
+       WHERE purchase_date >= $1
          AND (supplier_id IS NOT NULL OR description IS NOT NULL)
-         AND business_id = $1`,
-      [businessId]
+         AND business_id = $2`,
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total
        FROM sales
-       WHERE DATE(sale_date) = CURRENT_DATE - 1 AND business_id = $1`,
+       WHERE DATE(sale_date AT TIME ZONE 'America/El_Salvador') = (CURRENT_DATE AT TIME ZONE 'America/El_Salvador')::date - INTERVAL '1 day' AND business_id = $1`,
       [businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total
        FROM purchases
-       WHERE DATE(purchase_date) = CURRENT_DATE - 1
+       WHERE DATE(purchase_date AT TIME ZONE 'America/El_Salvador') = (CURRENT_DATE AT TIME ZONE 'America/El_Salvador')::date - INTERVAL '1 day'
          AND (supplier_id IS NOT NULL OR description IS NOT NULL)
          AND business_id = $1`,
       [businessId]
     ),
     pool.query(
       `SELECT
-         TO_CHAR(gs.day, 'DD/MM') AS day,
+         TO_CHAR(gs.day AT TIME ZONE 'America/El_Salvador', 'DD/MM') AS day,
          COALESCE(s.total, 0) AS ingresos,
          COALESCE(p.total, 0) AS egresos,
          COALESCE(s.total, 0) - COALESCE(p.total, 0) AS ganancia
        FROM generate_series(
-         (NOW() - INTERVAL '${interval}')::date,
-         CURRENT_DATE,
+         $1::timestamp,
+         CURRENT_TIMESTAMP,
          '1 day'::interval
        ) AS gs(day)
        LEFT JOIN (
-         SELECT DATE(sale_date) AS d, SUM(total) AS total
-         FROM sales WHERE business_id = $1 GROUP BY DATE(sale_date)
-       ) s ON s.d = gs.day::date
+         SELECT DATE(sale_date AT TIME ZONE 'America/El_Salvador') AS d, SUM(total) AS total
+         FROM sales WHERE business_id = $2 GROUP BY DATE(sale_date AT TIME ZONE 'America/El_Salvador')
+       ) s ON s.d = DATE(gs.day AT TIME ZONE 'America/El_Salvador')
        LEFT JOIN (
-         SELECT DATE(purchase_date) AS d, SUM(total) AS total
+         SELECT DATE(purchase_date AT TIME ZONE 'America/El_Salvador') AS d, SUM(total) AS total
          FROM purchases
-         WHERE (supplier_id IS NOT NULL OR description IS NOT NULL) AND business_id = $1
-         GROUP BY DATE(purchase_date)
-       ) p ON p.d = gs.day::date
+         WHERE (supplier_id IS NOT NULL OR description IS NOT NULL) AND business_id = $2
+         GROUP BY DATE(purchase_date AT TIME ZONE 'America/El_Salvador')
+       ) p ON p.d = DATE(gs.day AT TIME ZONE 'America/El_Salvador')
        ORDER BY gs.day`,
-      [businessId]
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT p.name AS product_name, SUM(sd.quantity) AS units_sold, SUM(sd.total) AS total
        FROM sale_details sd
        JOIN products p ON p.id = sd.product_id
        JOIN sales s ON s.id = sd.sale_id
-       WHERE s.sale_date >= NOW() - INTERVAL '${interval}' AND s.business_id = $1
+       WHERE s.sale_date >= $1 AND s.business_id = $2
        GROUP BY p.id, p.name
        ORDER BY total DESC
        LIMIT 5`,
-      [businessId]
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT payment_method, COUNT(*)::INT AS count, SUM(total) AS total
        FROM sales
-       WHERE sale_date >= NOW() - INTERVAL '${interval}' AND business_id = $1
+       WHERE sale_date >= $1 AND business_id = $2
        GROUP BY payment_method
        ORDER BY total DESC`,
-      [businessId]
+      [pastDate, businessId]
     ),
   ]);
 

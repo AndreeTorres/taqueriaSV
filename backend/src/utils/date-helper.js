@@ -20,6 +20,20 @@ export const getNowDateTime = () => {
 };
 
 /**
+ * Convierte una fecha a string en formato ISO para PostgreSQL
+ * Asegura que se use la fecha local sin conversión de zona horaria
+ * @param {Date|string} dateValue Fecha a convertir
+ * @returns {string} Fecha en formato ISO
+ */
+export const toISODateString = (dateValue) => {
+  if (!dateValue) return new Date().toISOString();
+  
+  const date = new Date(dateValue);
+  // Retorna ISO string que PostgreSQL interpretará correctamente
+  return date.toISOString();
+};
+
+/**
  * Convierte una fecha string (YYYY-MM-DD) a timestamp con hora a las 00:00:00 UTC
  * Esto previene problemas de zona horaria
  * @param {string} dateString - Fecha en formato YYYY-MM-DD

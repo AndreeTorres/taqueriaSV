@@ -11,7 +11,6 @@ export const DashboardPage = () => {
     salesToday: 0,
     purchasesToday: 0,
     salesTodayCount: 0,
-    lowStock: [],
     totalProducts: 0,
     latestMovements: [],
     ingresosmes: 0,
@@ -54,26 +53,14 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      <div className="two-column">
-        <SectionCard title="Inventario">
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.75rem" }}>
-            <span style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>Productos activos</span>
-            <strong>{data.totalProducts}</strong>
-          </div>
-          <p style={{ fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "0.5rem" }}>Bajo stock</p>
-          <Table
-            columns={[
-              { key: "name", label: "Producto" },
-              { key: "stock_current", label: "Stock actual" },
-              { key: "stock_minimum", label: "Mínimo" },
-            ]}
-            rows={data.lowStock}
-          />
-          {data.lowStock.length === 0 && (
-            <p style={{ textAlign: "center", color: "var(--success)", fontSize: "0.875rem", padding: "0.75rem" }}>Todo el stock en niveles normales</p>
-          )}
-        </SectionCard>
+      <div>
+        <p style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text-muted)", marginBottom: "0.65rem" }}>Información del negocio</p>
+        <div className="stats-grid">
+          <StatCard label="Productos activos" value={data.totalProducts} accent="default" />
+        </div>
+      </div>
 
+      <div>
         <SectionCard title="Últimos movimientos">
           <Table
             columns={[

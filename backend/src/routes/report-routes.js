@@ -18,49 +18,51 @@ router.use(authenticate, authorize("administrador", "encargado de inventario"));
 router.get(
   "/stock",
   asyncHandler(async (req, res) => {
-    res.json(await getStockReport(req.user.businessId));
+    res.json(await getStockReport());
   })
 );
 
 router.get(
   "/low-stock",
   asyncHandler(async (req, res) => {
-    res.json(await getLowStockReport(req.user.businessId));
+    res.json(await getLowStockReport());
   })
 );
 
 router.get(
   "/purchases",
   asyncHandler(async (req, res) => {
-    res.json(await getPurchasesByDate(req.query.startDate, req.query.endDate, req.user.businessId));
+    res.json(await getPurchasesByDate(req.query.startDate, req.query.endDate));
   })
 );
 
 router.get(
   "/sales",
   asyncHandler(async (req, res) => {
-    res.json(await getSalesByDate(req.query.startDate, req.query.endDate, req.user.businessId));
+    const result = await getSalesByDate(req.query.startDate, req.query.endDate);
+    res.json(result);
   })
 );
 
 router.get(
   "/profit",
   asyncHandler(async (req, res) => {
-    res.json(await getProfitSummary(req.query.startDate, req.query.endDate, req.user.businessId));
+    const result = await getProfitSummary(req.query.startDate, req.query.endDate);
+    res.json(result);
   })
 );
 
 router.get(
   "/top-products",
   asyncHandler(async (req, res) => {
-    res.json(await getTopProducts(req.query.startDate, req.query.endDate, req.user.businessId));
+    res.json(await getTopProducts(req.query.startDate, req.query.endDate));
   })
 );
 
 router.get(
   "/movements",
   asyncHandler(async (req, res) => {
-    res.json(await getMovementReport(req.query.startDate, req.query.endDate, req.user.businessId));
+    res.json(await getMovementReport(req.query.startDate, req.query.endDate));
   })
 );
 

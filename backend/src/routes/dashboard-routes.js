@@ -9,7 +9,7 @@ router.get(
   "/",
   authenticate,
   asyncHandler(async (req, res) => {
-    res.json(await getDashboardSummary(req.user.businessId));
+    res.json(await getDashboardSummary());
   })
 );
 
