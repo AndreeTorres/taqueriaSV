@@ -4,8 +4,8 @@ import { env } from "./config/env.js";
 
 const startServer = async () => {
   await pool.query("SELECT 1");
-  app.listen(env.port, () => {
-    console.log(`Backend running on http://localhost:${env.port}`);
+  app.listen(env.port, "0.0.0.0", () => {
+    console.log(`Backend running on port ${env.port}`);
   });
 };
 

@@ -18,7 +18,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: env.frontendUrl,
+    origin: env.frontendUrl.split(",").map(url => url.trim()),
+    credentials: true,
   })
 );
 app.use(express.json());
