@@ -1,6 +1,6 @@
 import { pool } from "../config/db.js";
 
-export const getDashboardSummary = async () => {
+export const getDashboardSummary = async (businessId) => {
   try {
     // Primero, diagnóstico: ver qué fechas hay en la BD
     const diagQuery = await pool.query(
@@ -9,9 +9,11 @@ export const getDashboardSummary = async () => {
         MIN(sale_date) as primera_venta,
         CURRENT_DATE,
         CURRENT_DATE AT TIME ZONE 'America/El_Salvador' as fecha_hoy_sv,
-        (SELECT COUNT(*) FROM sales WHERE sale_date::date = CURRENT_DATE) as ventas_hoy_simple,
-        (SELECT COUNT(*) FROM sales WHERE DATE(sale_date AT TIME ZONE 'UTC' AT TIME ZONE 'America/El_Salvador') = CURRENT_DATE AT TIME ZONE 'America/El_Salvador') as ventas_hoy_tz
-       FROM sales`
+        (SELECT COUNT(*) FROM sales WHERE sale_date::date = CURRENT_DATE AND business_id = $1) as ventas_hoy_simple,
+        (SELECT COUNT(*) FROM sales WHERE DATE(sale_date AT TIME ZONE 'UTC' AT TIME ZONE 'America/El_Salvador') = CURRENT_DATE AT TIME ZONE 'America/El_Salvador' AND business_id = $1) as ventas_hoy_tz
+       FROM sales
+       WHERE business_id = $1`,
+      [businessId]
     );
     
     console.log("Diagnostic:", diagQuery.rows[0]);
@@ -21,41 +23,49 @@ export const getDashboardSummary = async () => {
       pool.query(
         `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*)::INT AS count
          FROM sales 
-         WHERE sale_date::date = CURRENT_DATE::date`
+         WHERE sale_date::date = CURRENT_DATE::date AND business_id = $1`,
+        [businessId]
       ),
       // Compras de hoy
       pool.query(
         `SELECT COALESCE(SUM(total), 0) AS total
          FROM purchases 
-         WHERE purchase_date::date = CURRENT_DATE::date`
+         WHERE purchase_date::date = CURRENT_DATE::date AND business_id = $1`,
+        [businessId]
       ),
       // Total de productos activos
       pool.query(
-        `SELECT COUNT(*)::INT AS total FROM products WHERE status = 'active'`
+        `SELECT COUNT(*)::INT AS total FROM products WHERE status = 'active' AND business_id = $1`,
+        [businessId]
       ),
       // Últimos movimientos de inventario
       pool.query(
         `SELECT im.id, im.movement_type, im.quantity, im.movement_date, p.name AS product_name
          FROM inventory_movements im
          JOIN products p ON p.id = im.product_id
-         ORDER BY im.movement_date DESC, im.id DESC LIMIT 8`
+         WHERE im.business_id = $1
+         ORDER BY im.movement_date DESC, im.id DESC LIMIT 8`,
+        [businessId]
       ),
       // Ventas del mes actual
       pool.query(
         `SELECT COALESCE(SUM(total), 0) AS total
          FROM sales 
-         WHERE DATE_TRUNC('month', sale_date::date::timestamp) = DATE_TRUNC('month', CURRENT_DATE::timestamp)`
+         WHERE DATE_TRUNC('month', sale_date::date::timestamp) = DATE_TRUNC('month', CURRENT_DATE::timestamp) AND business_id = $1`,
+        [businessId]
       ),
       // Compras del mes actual
       pool.query(
         `SELECT COALESCE(SUM(total), 0) AS total
          FROM purchases 
-         WHERE DATE_TRUNC('month', purchase_date::date::timestamp) = DATE_TRUNC('month', CURRENT_DATE::timestamp)`
+         WHERE DATE_TRUNC('month', purchase_date::date::timestamp) = DATE_TRUNC('month', CURRENT_DATE::timestamp) AND business_id = $1`,
+        [businessId]
       ),
       // Pedidos activos (no entregados)
       pool.query(
         `SELECT COUNT(*)::INT AS total FROM sales
-         WHERE delivered = false`
+         WHERE delivered = false AND business_id = $1`,
+        [businessId]
       ),
     ]);
 

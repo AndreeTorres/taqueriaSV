@@ -18,28 +18,28 @@ router.use(authenticate, authorize("administrador", "encargado de inventario"));
 router.get(
   "/stock",
   asyncHandler(async (req, res) => {
-    res.json(await getStockReport());
+    res.json(await getStockReport(req.user.businessId));
   })
 );
 
 router.get(
   "/low-stock",
   asyncHandler(async (req, res) => {
-    res.json(await getLowStockReport());
+    res.json(await getLowStockReport(req.user.businessId));
   })
 );
 
 router.get(
   "/purchases",
   asyncHandler(async (req, res) => {
-    res.json(await getPurchasesByDate(req.query.startDate, req.query.endDate));
+    res.json(await getPurchasesByDate(req.user.businessId, req.query.startDate, req.query.endDate));
   })
 );
 
 router.get(
   "/sales",
   asyncHandler(async (req, res) => {
-    const result = await getSalesByDate(req.query.startDate, req.query.endDate);
+    const result = await getSalesByDate(req.user.businessId, req.query.startDate, req.query.endDate);
     res.json(result);
   })
 );
@@ -47,7 +47,7 @@ router.get(
 router.get(
   "/profit",
   asyncHandler(async (req, res) => {
-    const result = await getProfitSummary(req.query.startDate, req.query.endDate);
+    const result = await getProfitSummary(req.user.businessId, req.query.startDate, req.query.endDate);
     res.json(result);
   })
 );
@@ -55,14 +55,14 @@ router.get(
 router.get(
   "/top-products",
   asyncHandler(async (req, res) => {
-    res.json(await getTopProducts(req.query.startDate, req.query.endDate));
+    res.json(await getTopProducts(req.user.businessId, req.query.startDate, req.query.endDate));
   })
 );
 
 router.get(
   "/movements",
   asyncHandler(async (req, res) => {
-    res.json(await getMovementReport(req.query.startDate, req.query.endDate));
+    res.json(await getMovementReport(req.user.businessId, req.query.startDate, req.query.endDate));
   })
 );
 
