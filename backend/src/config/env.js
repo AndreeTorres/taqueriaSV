@@ -17,9 +17,9 @@ export const env = {
 };
 
 if (!env.jwtSecret) {
-  throw new Error("JWT_SECRET environment variable is required");
+  throw new Error("JWT_SECRET environment variable is required for production");
 }
 
 if (!env.databaseUrl) {
-  throw new Error("DATABASE_URL environment variable is required");
+  throw new Error("DATABASE_URL environment variable is required for production");
 }
