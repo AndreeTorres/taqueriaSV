@@ -10,8 +10,8 @@ router.use(authenticate);
 
 router.get(
   "/",
-  asyncHandler(async (_req, res) => {
-    res.json(await listRecipes());
+  asyncHandler(async (req, res) => {
+    res.json(await listRecipes(req.user.businessId));
   })
 );
 
@@ -26,7 +26,7 @@ router.post(
       required(item.ingredient_product_id, "ingredient_product_id");
       positiveNumber(item.quantity, "quantity");
     });
-    res.status(201).json(await createRecipe(req.body));
+    res.status(201).json(await createRecipe(req.body, req.user.businessId));
   })
 );
 
@@ -36,7 +36,7 @@ router.put(
   asyncHandler(async (req, res) => {
     required(req.body.name, "name");
     ensureArray(req.body.items, "items");
-    res.json(await updateRecipe(req.params.id, req.body));
+    res.json(await updateRecipe(req.params.id, req.body, req.user.businessId));
   })
 );
 

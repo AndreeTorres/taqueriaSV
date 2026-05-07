@@ -5,10 +5,10 @@ import { required, positiveNumber, ensureArray, enumValue, dateString } from "..
 const PAYMENT_METHODS = ["efectivo", "tarjeta", "cheque", "transferencia"];
 const ORDER_TYPES = ["comer_aqui", "para_llevar", "pasar_recogiendo"];
 
-export const listSales = async (filters = {}) => {
-  let query = `SELECT s.*, u.name AS user_name FROM sales s JOIN users u ON u.id = s.user_id WHERE 1=1`;
-  const params = [];
-  let paramIndex = 1;
+export const listSales = async (filters = {}, businessId) => {
+  let query = `SELECT s.*, u.name AS user_name FROM sales s JOIN users u ON u.id = s.user_id WHERE s.business_id = $1`;
+  const params = [businessId];
+  let paramIndex = 2;
 
   if (filters.client_name) {
     query += ` AND s.client_name ILIKE $${paramIndex}`;
@@ -63,12 +63,12 @@ export const listSales = async (filters = {}) => {
   return result.rows;
 };
 
-export const getSaleWithDetails = async (saleId) => {
+export const getSaleWithDetails = async (saleId, businessId) => {
   const saleResult = await pool.query(
     `SELECT s.*, u.name AS user_name
      FROM sales s JOIN users u ON u.id = s.user_id
-     WHERE s.id = $1`,
-    [saleId]
+     WHERE s.id = $1 AND s.business_id = $2`,
+    [saleId, businessId]
   );
   if (!saleResult.rows[0]) return null;
   const details = await pool.query(
@@ -80,7 +80,7 @@ export const getSaleWithDetails = async (saleId) => {
   return { ...saleResult.rows[0], details: details.rows };
 };
 
-export const createSale = async (payload, userId) => {
+export const createSale = async (payload, userId, businessId) => {
   required(payload.payment_method, "método de pago");
   ensureArray(payload.items, "items");
   enumValue(payload.payment_method, PAYMENT_METHODS, "método de pago");
@@ -100,8 +100,8 @@ export const createSale = async (payload, userId) => {
     }
 
     const saleResult = await client.query(
-      `INSERT INTO sales (client_name, sale_date, total, payment_method, order_type, status, observation, user_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      `INSERT INTO sales (client_name, sale_date, total, payment_method, order_type, status, observation, user_id, business_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
       [
         payload.client_name?.trim() || null,
@@ -112,13 +112,17 @@ export const createSale = async (payload, userId) => {
         "pendiente",
         payload.observation?.trim() || null,
         userId,
+        businessId,
       ]
     );
 
     const saleId = saleResult.rows[0].id;
 
     for (const item of payload.items) {
-      const product = await client.query("SELECT id FROM products WHERE id = $1 AND status = 'active'", [item.product_id]);
+      const product = await client.query(
+        "SELECT id FROM products WHERE id = $1 AND status = 'active' AND business_id = $2",
+        [item.product_id, businessId]
+      );
       if (!product.rows[0]) throw new AppError(`Producto ${item.product_id} no encontrado.`, 404);
 
       await client.query(
@@ -136,9 +140,9 @@ export const createSale = async (payload, userId) => {
   });
 };
 
-export const updateSale = async (saleId, payload) =>
+export const updateSale = async (saleId, payload, businessId) =>
   withTransaction(async (client) => {
-    const existing = await client.query("SELECT * FROM sales WHERE id = $1", [saleId]);
+    const existing = await client.query("SELECT * FROM sales WHERE id = $1 AND business_id = $2", [saleId, businessId]);
     if (!existing.rows[0]) throw new AppError("Pedido no encontrado.", 404);
 
     const fields = [];
@@ -183,7 +187,10 @@ export const updateSale = async (saleId, payload) =>
       await client.query("DELETE FROM sale_details WHERE sale_id = $1", [saleId]);
       let newTotal = 0;
       for (const item of payload.items) {
-        const product = await client.query("SELECT id FROM products WHERE id = $1 AND status = 'active'", [item.product_id]);
+        const product = await client.query(
+          "SELECT id FROM products WHERE id = $1 AND status = 'active' AND business_id = $2",
+          [item.product_id, businessId]
+        );
         if (!product.rows[0]) throw new AppError(`Producto ${item.product_id} no encontrado.`, 404);
         const itemTotal = Number(item.quantity) * Number(item.unit_price);
         newTotal += itemTotal;

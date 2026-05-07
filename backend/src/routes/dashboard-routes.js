@@ -8,7 +8,7 @@ const router = Router();
 router.get(
   "/",
   authenticate,
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
     res.json(await getDashboardSummary());
   })
 );

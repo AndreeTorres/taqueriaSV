@@ -1,68 +1,81 @@
 import { pool } from "../config/db.js";
 
-export const getAccountingSummary = async ({ period = "month" } = {}) => {
-  const interval = period === "week" ? "7 days" : "30 days";
+export const getAccountingSummary = async ({ period = "month" } = {}, businessId) => {
+  const daysBack = period === "week" ? 7 : 30;
+  const pastDate = new Date();
+  pastDate.setDate(pastDate.getDate() - daysBack);
 
   const [ingresosMes, egresosMes, ingresosAyer, egresosAyer, dailyData, topProducts, paymentBreakdown] = await Promise.all([
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*)::INT AS count
        FROM sales
-       WHERE sale_date >= NOW() - INTERVAL '${interval}'`
+       WHERE sale_date >= $1 AND business_id = $2`,
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*)::INT AS count
        FROM purchases
-       WHERE purchase_date >= NOW() - INTERVAL '${interval}' AND (supplier_id IS NOT NULL OR description IS NOT NULL)`
+       WHERE purchase_date >= $1
+         AND (supplier_id IS NOT NULL OR description IS NOT NULL)
+         AND business_id = $2`,
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total
        FROM sales
-       WHERE DATE(sale_date) = CURRENT_DATE - 1`
+       WHERE DATE(sale_date AT TIME ZONE 'America/El_Salvador') = (CURRENT_DATE AT TIME ZONE 'America/El_Salvador')::date - INTERVAL '1 day' AND business_id = $1`,
+      [businessId]
     ),
     pool.query(
       `SELECT COALESCE(SUM(total), 0) AS total
        FROM purchases
-       WHERE DATE(purchase_date) = CURRENT_DATE - 1 AND (supplier_id IS NOT NULL OR description IS NOT NULL)`
+       WHERE DATE(purchase_date AT TIME ZONE 'America/El_Salvador') = (CURRENT_DATE AT TIME ZONE 'America/El_Salvador')::date - INTERVAL '1 day'
+         AND (supplier_id IS NOT NULL OR description IS NOT NULL)
+         AND business_id = $1`,
+      [businessId]
     ),
     pool.query(
       `SELECT
-         TO_CHAR(gs.day, 'DD/MM') AS day,
+         TO_CHAR(gs.day AT TIME ZONE 'America/El_Salvador', 'DD/MM') AS day,
          COALESCE(s.total, 0) AS ingresos,
          COALESCE(p.total, 0) AS egresos,
          COALESCE(s.total, 0) - COALESCE(p.total, 0) AS ganancia
        FROM generate_series(
-         (NOW() - INTERVAL '${interval}')::date,
-         CURRENT_DATE,
+         $1::timestamp,
+         CURRENT_TIMESTAMP,
          '1 day'::interval
        ) AS gs(day)
        LEFT JOIN (
-         SELECT DATE(sale_date) AS d, SUM(total) AS total
-         FROM sales GROUP BY DATE(sale_date)
-       ) s ON s.d = gs.day::date
+         SELECT DATE(sale_date AT TIME ZONE 'America/El_Salvador') AS d, SUM(total) AS total
+         FROM sales WHERE business_id = $2 GROUP BY DATE(sale_date AT TIME ZONE 'America/El_Salvador')
+       ) s ON s.d = DATE(gs.day AT TIME ZONE 'America/El_Salvador')
        LEFT JOIN (
-         SELECT DATE(purchase_date) AS d, SUM(total) AS total
-         FROM purchases 
-         WHERE supplier_id IS NOT NULL OR description IS NOT NULL
-         GROUP BY DATE(purchase_date)
-       ) p ON p.d = gs.day::date
-       ORDER BY gs.day`
+         SELECT DATE(purchase_date AT TIME ZONE 'America/El_Salvador') AS d, SUM(total) AS total
+         FROM purchases
+         WHERE (supplier_id IS NOT NULL OR description IS NOT NULL) AND business_id = $2
+         GROUP BY DATE(purchase_date AT TIME ZONE 'America/El_Salvador')
+       ) p ON p.d = DATE(gs.day AT TIME ZONE 'America/El_Salvador')
+       ORDER BY gs.day`,
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT p.name AS product_name, SUM(sd.quantity) AS units_sold, SUM(sd.total) AS total
        FROM sale_details sd
        JOIN products p ON p.id = sd.product_id
        JOIN sales s ON s.id = sd.sale_id
-       WHERE s.sale_date >= NOW() - INTERVAL '${interval}'
+       WHERE s.sale_date >= $1 AND s.business_id = $2
        GROUP BY p.id, p.name
        ORDER BY total DESC
-       LIMIT 5`
+       LIMIT 5`,
+      [pastDate, businessId]
     ),
     pool.query(
       `SELECT payment_method, COUNT(*)::INT AS count, SUM(total) AS total
        FROM sales
-       WHERE sale_date >= NOW() - INTERVAL '${interval}'
+       WHERE sale_date >= $1 AND business_id = $2
        GROUP BY payment_method
-       ORDER BY total DESC`
+       ORDER BY total DESC`,
+      [pastDate, businessId]
     ),
   ]);
 
@@ -104,13 +117,14 @@ export const getAccountingSummary = async ({ period = "month" } = {}) => {
   };
 };
 
-export const listGastos = async () => {
+export const listGastos = async (businessId) => {
   const result = await pool.query(
     `SELECT id, description, total AS amount, purchase_date AS date, type, created_at
      FROM purchases
-     WHERE description IS NOT NULL
+     WHERE description IS NOT NULL AND business_id = $1
      ORDER BY purchase_date DESC, id DESC
-     LIMIT 100`
+     LIMIT 100`,
+    [businessId]
   );
   return result.rows.map((r) => ({
     id: r.id,
@@ -122,58 +136,43 @@ export const listGastos = async () => {
   }));
 };
 
-export const createGasto = async ({ description, amount, date, type = 'operativo' }, userId) => {
+export const createGasto = async ({ description, amount, date, type = 'operativo' }, userId, businessId) => {
   const supplier = await pool.query(
-    `SELECT id FROM suppliers WHERE name = 'Gastos Generales' LIMIT 1`
+    `SELECT id FROM suppliers WHERE name = 'Gastos Generales' AND business_id = $1 LIMIT 1`,
+    [businessId]
   );
   const supplierId = supplier.rows[0]?.id;
   if (!supplierId) throw new Error("Proveedor de gastos no configurado.");
 
   const result = await pool.query(
-    `INSERT INTO purchases (supplier_id, purchase_date, total, user_id, description, type)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING id, description, total AS amount, purchase_date AS date, type`,
-    [supplierId, date || new Date(), amount, userId, description, type]
+    `INSERT INTO purchases (supplier_id, purchase_date, total, user_id, description, type, business_id)
+     VALUES ($1, $2::date, $3, $4, $5, $6, $7)
+     RETURNING id, description, total AS amount, purchase_date::date AS date, type`,
+    [supplierId, date || new Date().toISOString().split('T')[0], amount, userId, description, type, businessId]
   );
   const r = result.rows[0];
-  const gasto = { id: r.id, description: r.description, amount: Number(r.amount), date: r.date, type: r.type };
-  
-  // If type is 'ingredientes', create an inventory movement for tracking
-  if (type === 'ingredientes') {
-    try {
-      await pool.query(
-        `INSERT INTO inventory_movements (product_id, movement_type, quantity, movement_date, user_id, observation)
-         VALUES ((SELECT id FROM products WHERE name = 'Gastos Ingredientes' LIMIT 1), 'gasto_ingrediente', $1, $2, $3, $4)`,
-        [amount, new Date(), userId, `Gasto de ingredientes: ${description}`]
-      );
-    } catch (err) {
-      // If product doesn't exist, just log the expense without inventory movement
-      console.warn("Producto 'Gastos Ingredientes' no encontrado. Gasto registrado sin movimiento de inventario.");
-    }
-  }
-  
-  return gasto;
+  return { id: r.id, description: r.description, amount: Number(r.amount), date: r.date, type: r.type };
 };
 
-export const updateGasto = async ({ description, amount, date, type }, gastoId) => {
+export const updateGasto = async ({ description, amount, date, type }, gastoId, businessId) => {
   const result = await pool.query(
-    `UPDATE purchases 
-     SET description = $1, total = $2, purchase_date = $3, type = $4
-     WHERE id = $5 AND description IS NOT NULL
-     RETURNING id, description, total AS amount, purchase_date AS date, type`,
-    [description, amount, date || new Date(), type, gastoId]
+    `UPDATE purchases
+     SET description = $1, total = $2, purchase_date = $3::date, type = $4
+     WHERE id = $5 AND description IS NOT NULL AND business_id = $6
+     RETURNING id, description, total AS amount, purchase_date::date AS date, type`,
+    [description, amount, date || new Date().toISOString().split('T')[0], type, gastoId, businessId]
   );
   if (result.rows.length === 0) throw new Error("Gasto no encontrado.");
   const r = result.rows[0];
   return { id: r.id, description: r.description, amount: Number(r.amount), date: r.date, type: r.type };
 };
 
-export const deleteGasto = async (gastoId) => {
+export const deleteGasto = async (gastoId, businessId) => {
   const result = await pool.query(
-    `DELETE FROM purchases 
-     WHERE id = $1 AND description IS NOT NULL
+    `DELETE FROM purchases
+     WHERE id = $1 AND description IS NOT NULL AND business_id = $2
      RETURNING id`,
-    [gastoId]
+    [gastoId, businessId]
   );
   if (result.rows.length === 0) throw new Error("Gasto no encontrado.");
   return { success: true };

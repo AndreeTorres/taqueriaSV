@@ -10,15 +10,15 @@ router.use(authenticate);
 
 router.get(
   "/movements",
-  asyncHandler(async (_req, res) => {
-    res.json(await listMovements());
+  asyncHandler(async (req, res) => {
+    res.json(await listMovements(req.user.businessId));
   })
 );
 
 router.get(
   "/alerts",
-  asyncHandler(async (_req, res) => {
-    res.json(await getAlerts());
+  asyncHandler(async (req, res) => {
+    res.json(await getAlerts(req.user.businessId));
   })
 );
 
@@ -29,7 +29,7 @@ router.post(
     required(req.body.product_id, "product_id");
     required(req.body.movement_type, "movement_type");
     positiveNumber(req.body.quantity, "quantity");
-    res.status(201).json(await createManualMovement(req.body, req.user.id));
+    res.status(201).json(await createManualMovement(req.body, req.user.id, req.user.businessId));
   })
 );
 

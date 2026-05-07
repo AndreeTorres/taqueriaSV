@@ -1,12 +1,14 @@
 import { pool, withTransaction } from "../config/db.js";
 import { AppError } from "../utils/app-error.js";
 
-export const listRecipes = async () => {
+export const listRecipes = async (businessId) => {
   const recipes = await pool.query(
     `SELECT r.*, p.name AS product_name
      FROM recipes r
      JOIN products p ON p.id = r.product_id
-     ORDER BY r.id DESC`
+     WHERE r.business_id = $1
+     ORDER BY r.id DESC`,
+    [businessId]
   );
 
   const fullRecipes = [];
@@ -29,24 +31,30 @@ export const listRecipes = async () => {
   return fullRecipes;
 };
 
-export const createRecipe = async (payload) =>
+export const createRecipe = async (payload, businessId) =>
   withTransaction(async (client) => {
-    const product = await client.query("SELECT * FROM products WHERE id = $1", [payload.product_id]);
+    const product = await client.query(
+      "SELECT * FROM products WHERE id = $1 AND business_id = $2",
+      [payload.product_id, businessId]
+    );
 
     if (!product.rows[0]) {
       throw new AppError("Producto final no encontrado.", 404);
     }
 
-    const existing = await client.query("SELECT id FROM recipes WHERE product_id = $1", [payload.product_id]);
+    const existing = await client.query(
+      "SELECT id FROM recipes WHERE product_id = $1 AND business_id = $2",
+      [payload.product_id, businessId]
+    );
     if (existing.rows[0]) {
       throw new AppError("Ese producto ya tiene una receta asociada.");
     }
 
     const recipeResult = await client.query(
-      `INSERT INTO recipes (product_id, name, description)
-       VALUES ($1,$2,$3)
+      `INSERT INTO recipes (product_id, name, description, business_id)
+       VALUES ($1,$2,$3,$4)
        RETURNING *`,
-      [payload.product_id, payload.name, payload.description || null]
+      [payload.product_id, payload.name, payload.description || null, businessId]
     );
 
     for (const item of payload.items) {
@@ -60,9 +68,12 @@ export const createRecipe = async (payload) =>
     return recipeResult.rows[0];
   });
 
-export const updateRecipe = async (id, payload) =>
+export const updateRecipe = async (id, payload, businessId) =>
   withTransaction(async (client) => {
-    const recipe = await client.query("SELECT * FROM recipes WHERE id = $1", [id]);
+    const recipe = await client.query(
+      "SELECT * FROM recipes WHERE id = $1 AND business_id = $2",
+      [id, businessId]
+    );
     if (!recipe.rows[0]) {
       throw new AppError("Receta no encontrada.", 404);
     }
@@ -70,9 +81,9 @@ export const updateRecipe = async (id, payload) =>
     const recipeResult = await client.query(
       `UPDATE recipes
        SET name = $1, description = $2, updated_at = NOW()
-       WHERE id = $3
+       WHERE id = $3 AND business_id = $4
        RETURNING *`,
-      [payload.name, payload.description || null, id]
+      [payload.name, payload.description || null, id, businessId]
     );
 
     await client.query("DELETE FROM recipe_items WHERE recipe_id = $1", [id]);

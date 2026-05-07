@@ -72,12 +72,15 @@ export const InventoryPage = () => {
 
         <SectionCard title="Alertas de stock">
           <ul className="simple-list">
-            {alerts.lowStock.map((item) => (
-              <li key={item.id}>
-                <strong>{item.name}</strong>
-                <span>{item.stock_current} / minimo {item.stock_minimum}</span>
-              </li>
-            ))}
+            {alerts.lowStock.length > 0 ? (
+              alerts.lowStock.map((item) => (
+                <li key={item.id}>
+                  <strong>{item.name}</strong>
+                </li>
+              ))
+            ) : (
+              <p style={{ color: "#888" }}>No hay alertas de stock</p>
+            )}
           </ul>
         </SectionCard>
 

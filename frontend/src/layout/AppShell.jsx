@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ExportModal } from "../components/ExportModal";
 
 const navItems = [
   {
@@ -31,7 +32,7 @@ const navItems = [
   },
   {
     to: "/products",
-    label: "Platillos",
+    label: "Productos",
     roles: ["administrador", "taquero"],
     icon: (
       <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
@@ -69,7 +70,7 @@ const navItems = [
 const pageTitles = {
   "/": "Dashboard",
   "/ventas": "Ventas",
-  "/products": "Platillos",
+  "/products": "Productos",
   "/contabilidad": "Contabilidad",
   "/reports": "Reportes",
 };
@@ -101,6 +102,7 @@ export const AppShell = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   const menu = navItems.filter((item) => item.roles.includes(user.role));
   const currentTitle = pageTitles[location.pathname] ?? "Los Campos";
@@ -157,6 +159,11 @@ export const AppShell = () => {
               <div className="user-role">{user.role}</div>
             </div>
           </div>
+          {user.role === "administrador" && (
+            <button type="button" className="secondary-button" onClick={() => setExportModalOpen(true)} style={{ width: "100%", justifyContent: "center", fontSize: "0.8rem", padding: "0.45rem 0.75rem", marginBottom: "8px" }}>
+              📥 Descargar Datos
+            </button>
+          )}
           <button type="button" className="secondary-button" onClick={logout} style={{ width: "100%", justifyContent: "center", fontSize: "0.8rem", padding: "0.45rem 0.75rem" }}>
             <LogoutIcon />
             Cerrar sesión
@@ -181,6 +188,8 @@ export const AppShell = () => {
           <Outlet />
         </div>
       </main>
+
+      <ExportModal isOpen={exportModalOpen} onClose={() => setExportModalOpen(false)} />
     </div>
   );
 };

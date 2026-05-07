@@ -31,8 +31,6 @@ CREATE TABLE products (
   unit_measure VARCHAR(30) NOT NULL,
   purchase_price NUMERIC(12,2) NOT NULL DEFAULT 0,
   sale_price NUMERIC(12,2) NOT NULL DEFAULT 0,
-  stock_current NUMERIC(12,2) NOT NULL DEFAULT 0,
-  stock_minimum NUMERIC(12,2) NOT NULL DEFAULT 0,
   status VARCHAR(20) NOT NULL DEFAULT 'active',
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -125,7 +123,6 @@ CREATE TABLE recipe_items (
 CREATE INDEX idx_products_name ON products USING gin(name gin_trgm_ops);
 CREATE INDEX idx_products_category_id ON products(category_id);
 CREATE INDEX idx_products_status ON products(status);
-CREATE INDEX idx_products_stock_alert ON products(stock_current, stock_minimum);
 
 CREATE INDEX idx_sales_date ON sales(sale_date DESC);
 CREATE INDEX idx_sales_status ON sales(status);

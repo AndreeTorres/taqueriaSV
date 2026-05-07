@@ -21,7 +21,7 @@ router.get(
       limit: req.query.limit ? parseInt(req.query.limit) : undefined,
       offset: req.query.offset ? parseInt(req.query.offset) : undefined,
     };
-    res.json(await listSales(filters));
+    res.json(await listSales(filters, req.user.businessId));
   })
 );
 
@@ -29,7 +29,7 @@ router.post(
   "/",
   authorize("administrador", "taquero"),
   asyncHandler(async (req, res) => {
-    res.status(201).json(await createSale(req.body, req.user.id));
+    res.status(201).json(await createSale(req.body, req.user.id, req.user.businessId));
   })
 );
 
@@ -37,7 +37,7 @@ router.get(
   "/:id",
   authorize("administrador", "taquero"),
   asyncHandler(async (req, res) => {
-    const sale = await getSaleWithDetails(Number(req.params.id));
+    const sale = await getSaleWithDetails(Number(req.params.id), req.user.businessId);
     if (!sale) return res.status(404).json({ message: "Pedido no encontrado." });
     res.json(sale);
   })
@@ -47,7 +47,7 @@ router.patch(
   "/:id",
   authorize("administrador", "taquero"),
   asyncHandler(async (req, res) => {
-    res.json(await updateSale(Number(req.params.id), req.body));
+    res.json(await updateSale(Number(req.params.id), req.body, req.user.businessId));
   })
 );
 
