@@ -28,32 +28,33 @@ const ItemsGrid = ({ items, products, onChange, onRemove, onAdd, onAddByCategory
 
   return (
     <div>
-      <div style={{ display:"grid", gridTemplateColumns:"2fr 60px 90px 28px", gap:"0.4rem", marginBottom:"0.35rem" }}>
+      <div style={{ display:"grid", gridTemplateColumns:"2fr 60px 90px 28px", gap:"0.4rem", marginBottom:"0.75rem", padding:"0.5rem 0", borderBottom:"2px solid var(--border-strong)" }}>
         {["Platillo","Cant.","Precio",""].map((h,i) => (
-          <span key={i} style={{ fontSize:"0.7rem", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase" }}>{h}</span>
+          <span key={i} style={{ fontSize:"0.75rem", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</span>
         ))}
       </div>
       {items.map((item, idx) => (
         <div key={idx} style={{ display:"grid", gridTemplateColumns:"2fr 60px 90px 28px", gap:"0.4rem", marginBottom:"0.4rem" }}>
-          <select value={item.product_id} onChange={(e) => onChange(idx,"product_id",e.target.value)} required>
+          <select value={item.product_id} onChange={(e) => onChange(idx,"product_id",e.target.value)} required
+            style={{ padding:"0.6rem", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text)", fontSize:"0.9rem", fontWeight:500, cursor:"pointer", transition:"all 0.2s", boxShadow:"var(--shadow-sm)" }}>
             <option value="">— Seleccionar —</option>
             {products.map((p) => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
           </select>
-          <input type="number" min="1" step="1" value={item.quantity} onChange={(e) => onChange(idx,"quantity",e.target.value)} required style={{ textAlign:"center" }} />
-          <input type="number" step="0.01" min="0" value={item.unit_price} onChange={(e) => onChange(idx,"unit_price",e.target.value)} required style={{ textAlign:"right" }} />
+          <input type="number" min="1" step="1" value={item.quantity} onChange={(e) => onChange(idx,"quantity",e.target.value)} required style={{ textAlign:"center", padding:"0.6rem", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", fontSize:"0.9rem", fontWeight:500 }} />
+          <input type="number" step="0.01" min="0" value={item.unit_price} onChange={(e) => onChange(idx,"unit_price",e.target.value)} required style={{ textAlign:"right", padding:"0.6rem", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", fontSize:"0.9rem", fontWeight:500 }} />
           <button type="button" className="secondary-button" onClick={() => onRemove(idx)} disabled={items.length===1}
-            style={{ padding:0, fontSize:"1.2rem", color:"var(--danger)", lineHeight:1 }}>×</button>
+            style={{ padding:"0", fontSize:"1.2rem", color:"var(--danger)", lineHeight:1, background:"var(--danger-bg)", border:"1px solid var(--danger-border)", borderRadius:"var(--radius-md)", cursor:"pointer", transition:"all 0.2s" }}>×</button>
         </div>
       ))}
       <div style={{ display:"flex", gap:"0.5rem", flexWrap:"wrap" }}>
-        <button type="button" className="secondary-button" onClick={onAdd} style={{ fontSize:"0.8rem" }}>+ Platillo</button>
+        <button type="button" className="secondary-button" onClick={onAdd} style={{ fontSize:"0.8rem", padding:"0.6rem 1rem", background:"var(--success)", color:"white", border:"none", borderRadius:"var(--radius-md)", fontWeight:600, cursor:"pointer", transition:"all 0.2s" }}>+ Platillo</button>
         <button type="button" className="secondary-button" onClick={() => setShowCategorySelector(!showCategorySelector)} 
-          style={{ fontSize:"0.8rem", background:"var(--blue-primary)", color:"white" }}>
+          style={{ fontSize:"0.8rem", padding:"0.6rem 1rem", background:showCategorySelector ? "var(--blue-dark)" : "var(--blue-primary)", color:"white", border:"none", borderRadius:"var(--radius-md)", fontWeight:600, cursor:"pointer", transition:"all 0.2s" }}>
           {showCategorySelector ? "✕ Cerrar categorías" : "📁 Por categoría"}
         </button>
       </div>
       {showCategorySelector && (
-        <div style={{ marginTop:"0.75rem", padding:"0.75rem", background:"var(--bg-secondary)", borderRadius:"var(--radius-md)", border:"1px solid var(--border)" }}>
+        <div style={{ marginTop:"1rem", padding:"1rem", background:"var(--surface)", borderRadius:"var(--radius-lg)", border:"2px solid var(--blue-primary)", boxShadow:"var(--shadow-md)" }}>
           <ProductsByCategorySelector onSelectProduct={handleCategorySelect} />
         </div>
       )}
@@ -415,13 +416,14 @@ export const SalesPage = () => {
     <div className="page">
       <PageHeader title="Ventas" subtitle="Registro de pedidos" />
 
-      <SectionCard title="➕ Nuevo pedido" style={{ background:"var(--blue-lighter)" }}>
+      <SectionCard title="➕ Nuevo pedido" style={{ background:"linear-gradient(135deg, var(--blue-lighter), var(--surface))", border:"2px solid var(--blue-primary)", boxShadow:"var(--shadow-md)" }}>
         <form onSubmit={submitSale}>
           {/* 1. Cliente — obligatorio */}
           <label style={{ display:"block", marginBottom:"0.75rem" }}>
-            Cliente
+            <span style={{ fontSize:"0.8rem", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.5px" }}>Cliente</span>
             <input value={form.client_name} onChange={(e) => setForm((p) => ({ ...p, client_name: e.target.value }))}
-              placeholder="Nombre del cliente" required />
+              placeholder="Nombre del cliente" required 
+              style={{ width:"100%", marginTop:"0.35rem", padding:"0.7rem", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text)", fontSize:"0.95rem", fontWeight:500 }} />
           </label>
 
           {/* 2. Platillos */}
@@ -438,25 +440,26 @@ export const SalesPage = () => {
 
           {/* 3. Observaciones/Preferencias */}
           <label style={{ display:"block", marginBottom:"0.75rem" }}>
-            Notas/Preferencias
+            <span style={{ fontSize:"0.8rem", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.5px" }}>Notas/Preferencias</span>
             <textarea value={form.observation} onChange={(e) => setForm((p) => ({ ...p, observation: e.target.value }))}
-              placeholder="Ej: Sin picante, extra cebolla, alergias, etc…" style={{ resize:"vertical", minHeight:"60px", fontFamily:"inherit" }} />
+              placeholder="Ej: Sin picante, extra cebolla, alergias, etc…" 
+              style={{ width:"100%", marginTop:"0.35rem", padding:"0.7rem", resize:"vertical", minHeight:"60px", fontFamily:"inherit", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text)", fontSize:"0.95rem" }} />
           </label>
 
           <hr style={{ border:"none", borderTop:"1px solid var(--border)", margin:"0.75rem 0" }} />
 
           {/* 4. Fecha — deshabilitada */}
           <label style={{ display:"block", marginBottom:"0.75rem" }}>
-            Fecha y hora
+            <span style={{ fontSize:"0.8rem", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.5px" }}>Fecha y hora</span>
             <input type="datetime-local" value={form.sale_date} disabled
-              style={{ background:"var(--bg)", color:"var(--text-muted)", cursor:"not-allowed" }} />
+              style={{ width:"100%", marginTop:"0.35rem", padding:"0.7rem", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:"var(--bg)", color:"var(--text-muted)", cursor:"not-allowed" }} />
           </label>
 
-          {error && <div className="alert error" style={{ marginBottom:"0.75rem" }}>{error}</div>}
+          {error && <div style={{ marginBottom:"0.75rem", padding:"0.85rem", borderRadius:"var(--radius-md)", background:"var(--danger-bg)", border:"1px solid var(--danger-border)", color:"var(--danger)", fontSize:"0.9rem", fontWeight:500 }}>{error}</div>}
 
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:"1rem", flexWrap:"wrap" }}>
-            <span style={{ fontSize:"1.2rem", fontWeight:700 }}>Total: <span style={{ color:"var(--blue-primary)" }}>{currency(totalForm)}</span></span>
-            <button type="submit" disabled={submitting} style={{ padding:"0.8rem 2rem", fontSize:"1rem", fontWeight:600 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:"1rem", flexWrap:"wrap", padding:"1rem", borderRadius:"var(--radius-lg)", background:"var(--bg)", border:"1px solid var(--border)" }}>
+            <span style={{ fontSize:"1.1rem", fontWeight:700, color:"var(--text)" }}>Total: <span style={{ color:"var(--blue-primary)", fontSize:"1.3rem" }}>{currency(totalForm)}</span></span>
+            <button type="submit" disabled={submitting} style={{ padding:"0.8rem 1.5rem", fontSize:"1rem", fontWeight:600, background:"var(--blue-primary)", color:"white", border:"none", borderRadius:"var(--radius-md)", cursor:submitting ? "not-allowed" : "pointer", opacity:submitting ? 0.7 : 1, transition:"all 0.2s" }}>
               {submitting ? "Guardando…" : "💾 Guardar pedido"}
             </button>
           </div>

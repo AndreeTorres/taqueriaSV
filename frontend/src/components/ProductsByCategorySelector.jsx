@@ -28,57 +28,72 @@ export const ProductsByCategorySelector = ({ onSelectProduct }) => {
   }, []);
 
   if (loading) {
-    return <div style={{ padding: '20px', textAlign: 'center' }}>⏳ Cargando categorías...</div>;
+    return <div style={{ padding: '1.25rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.95rem' }}>⏳ Cargando categorías...</div>;
   }
 
   if (error) {
-    return <div style={{ padding: '20px', color: '#f44336' }}>❌ Error: {error}</div>;
+    return <div style={{ padding: '1.25rem', color: 'var(--danger)', fontSize: '0.95rem', background: 'var(--danger-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--danger-border)' }}>❌ Error: {error}</div>;
   }
 
   return (
     <div style={{ 
-      backgroundColor: '#f5f5f5', 
-      borderRadius: '8px', 
-      padding: '20px',
+      backgroundColor: 'var(--bg)', 
+      borderRadius: 'var(--radius-lg)', 
+      padding: '1.25rem',
       maxHeight: '500px',
-      overflowY: 'auto'
+      overflowY: 'auto',
+      border: '1px solid var(--border)'
     }}>
-      <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '16px', fontWeight: 'bold' }}>
-        📁 Seleccionar Producto
+      <h3 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '0.95rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)', letterSpacing: '0.5px' }}>
+        📁 Seleccionar Producto por Categoría
       </h3>
 
       {categories.map((category) => (
-        <div key={category.id} style={{ marginBottom: '10px' }}>
+        <div key={category.id} style={{ marginBottom: '0.75rem' }}>
           <button
             onClick={() => setExpandedCategory(expandedCategory === category.id ? null : category.id)}
             style={{
               width: '100%',
-              padding: '12px',
-              backgroundColor: expandedCategory === category.id ? '#2196F3' : '#e0e0e0',
-              color: expandedCategory === category.id ? 'white' : 'black',
-              border: 'none',
-              borderRadius: '4px',
+              padding: '0.75rem 1rem',
+              backgroundColor: expandedCategory === category.id ? 'var(--blue-primary)' : 'var(--surface)',
+              color: expandedCategory === category.id ? 'white' : 'var(--text)',
+              border: `1px solid ${expandedCategory === category.id ? 'var(--blue-primary)' : 'var(--border)'}`,
+              borderRadius: 'var(--radius-md)',
               cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '14px',
+              fontWeight: 600,
+              fontSize: '0.9rem',
               textAlign: 'left',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s ease',
+              boxShadow: expandedCategory === category.id ? 'var(--shadow-sm)' : 'none'
+            }}
+            onMouseEnter={(e) => {
+              if (expandedCategory !== category.id) {
+                e.currentTarget.style.backgroundColor = 'var(--blue-lighter)';
+                e.currentTarget.style.borderColor = 'var(--blue-primary)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (expandedCategory !== category.id) {
+                e.currentTarget.style.backgroundColor = 'var(--surface)';
+                e.currentTarget.style.borderColor = 'var(--border)';
+              }
             }}
           >
             <span>{category.name}</span>
-            <span style={{ fontSize: '12px' }}>({category.products?.length || 0})</span>
+            <span style={{ fontSize: '0.85rem', opacity: 0.7 }}>({category.products?.length || 0})</span>
           </button>
 
           {expandedCategory === category.id && category.products && (
             <div style={{ 
-              backgroundColor: 'white', 
-              borderRadius: '4px', 
-              marginTop: '8px',
-              padding: '10px',
-              border: '1px solid #ddd'
+              backgroundColor: 'var(--surface)', 
+              borderRadius: 'var(--radius-md)', 
+              marginTop: '0.5rem',
+              padding: '0.75rem',
+              border: '1px solid var(--border)',
+              animation: 'slideDown 0.2s ease'
             }}>
               {category.products.length > 0 ? (
                 category.products.map((product) => (
@@ -87,54 +102,71 @@ export const ProductsByCategorySelector = ({ onSelectProduct }) => {
                     onClick={() => onSelectProduct(product)}
                     style={{
                       width: '100%',
-                      padding: '12px',
-                      marginBottom: '8px',
-                      backgroundColor: '#f9f9f9',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
+                      padding: '0.85rem',
+                      marginBottom: '0.6rem',
+                      backgroundColor: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-md)',
                       cursor: 'pointer',
                       textAlign: 'left',
-                      fontSize: '13px',
-                      transition: 'all 0.2s',
+                      fontSize: '0.9rem',
+                      transition: 'all 0.2s ease',
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      color: 'var(--text)'
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#e8f5e9';
-                      e.target.style.borderColor = '#4CAF50';
+                      e.currentTarget.style.backgroundColor = 'var(--success-bg)';
+                      e.currentTarget.style.borderColor = 'var(--success)';
+                      e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = '#f9f9f9';
-                      e.target.style.borderColor = '#ddd';
+                      e.currentTarget.style.backgroundColor = 'var(--bg)';
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
-                    <div>
-                      <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{product.name}</div>
-                      <div style={{ fontSize: '11px', color: '#666' }}>{product.unit_measure}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.2rem', color: 'var(--text)' }}>{product.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{product.unit_measure}</div>
                     </div>
                     <div style={{ 
-                      backgroundColor: '#4CAF50', 
+                      backgroundColor: 'var(--blue-primary)', 
                       color: 'white', 
-                      padding: '4px 8px', 
-                      borderRadius: '3px',
-                      fontWeight: 'bold',
-                      fontSize: '12px',
-                      whiteSpace: 'nowrap'
+                      padding: '0.4rem 0.8rem', 
+                      borderRadius: 'var(--radius-sm)',
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      whiteSpace: 'nowrap',
+                      marginLeft: '0.75rem'
                     }}>
                       ${product.sale_price.toFixed(2)}
                     </div>
                   </button>
                 ))
               ) : (
-                <div style={{ padding: '10px', color: '#666', textAlign: 'center' }}>
-                  Sin productos
+                <div style={{ padding: '1rem', color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.9rem' }}>
+                  Sin productos disponibles
                 </div>
               )}
             </div>
           )}
         </div>
       ))}
+
+      <style>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };
