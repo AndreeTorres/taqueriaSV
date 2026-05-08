@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { PageHeader } from "../components/PageHeader";
 import { SectionCard } from "../components/SectionCard";
+import { ProductsByCategorySelector } from "../components/ProductsByCategorySelector";
 import { currency } from "../utils/format";
 import "../styles/sales-page.css";
 
@@ -17,28 +18,48 @@ const freshForm = () => ({ client_name: "", observation: "", sale_date: nowLocal
 const fmtDate = (v) => v ? new Date(v).toLocaleString("es-MX",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "—";
 
 /* Grid de items reutilizable */
-const ItemsGrid = ({ items, products, onChange, onRemove, onAdd }) => (
-  <div>
-    <div style={{ display:"grid", gridTemplateColumns:"2fr 60px 90px 28px", gap:"0.4rem", marginBottom:"0.35rem" }}>
-      {["Platillo","Cant.","Precio",""].map((h,i) => (
-        <span key={i} style={{ fontSize:"0.7rem", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase" }}>{h}</span>
-      ))}
-    </div>
-    {items.map((item, idx) => (
-      <div key={idx} style={{ display:"grid", gridTemplateColumns:"2fr 60px 90px 28px", gap:"0.4rem", marginBottom:"0.4rem" }}>
-        <select value={item.product_id} onChange={(e) => onChange(idx,"product_id",e.target.value)} required>
-          <option value="">— Seleccionar —</option>
-          {products.map((p) => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
-        </select>
-        <input type="number" min="1" step="1" value={item.quantity} onChange={(e) => onChange(idx,"quantity",e.target.value)} required style={{ textAlign:"center" }} />
-        <input type="number" step="0.01" min="0" value={item.unit_price} onChange={(e) => onChange(idx,"unit_price",e.target.value)} required style={{ textAlign:"right" }} />
-        <button type="button" className="secondary-button" onClick={() => onRemove(idx)} disabled={items.length===1}
-          style={{ padding:0, fontSize:"1.2rem", color:"var(--danger)", lineHeight:1 }}>×</button>
+const ItemsGrid = ({ items, products, onChange, onRemove, onAdd, onAddByCategory }) => {
+  const [showCategorySelector, setShowCategorySelector] = useState(false);
+
+  const handleCategorySelect = (product) => {
+    onAddByCategory(product);
+    setShowCategorySelector(false);
+  };
+
+  return (
+    <div>
+      <div style={{ display:"grid", gridTemplateColumns:"2fr 60px 90px 28px", gap:"0.4rem", marginBottom:"0.35rem" }}>
+        {["Platillo","Cant.","Precio",""].map((h,i) => (
+          <span key={i} style={{ fontSize:"0.7rem", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase" }}>{h}</span>
+        ))}
       </div>
-    ))}
-    <button type="button" className="secondary-button" onClick={onAdd} style={{ fontSize:"0.8rem" }}>+ Platillo</button>
-  </div>
-);
+      {items.map((item, idx) => (
+        <div key={idx} style={{ display:"grid", gridTemplateColumns:"2fr 60px 90px 28px", gap:"0.4rem", marginBottom:"0.4rem" }}>
+          <select value={item.product_id} onChange={(e) => onChange(idx,"product_id",e.target.value)} required>
+            <option value="">— Seleccionar —</option>
+            {products.map((p) => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
+          </select>
+          <input type="number" min="1" step="1" value={item.quantity} onChange={(e) => onChange(idx,"quantity",e.target.value)} required style={{ textAlign:"center" }} />
+          <input type="number" step="0.01" min="0" value={item.unit_price} onChange={(e) => onChange(idx,"unit_price",e.target.value)} required style={{ textAlign:"right" }} />
+          <button type="button" className="secondary-button" onClick={() => onRemove(idx)} disabled={items.length===1}
+            style={{ padding:0, fontSize:"1.2rem", color:"var(--danger)", lineHeight:1 }}>×</button>
+        </div>
+      ))}
+      <div style={{ display:"flex", gap:"0.5rem", flexWrap:"wrap" }}>
+        <button type="button" className="secondary-button" onClick={onAdd} style={{ fontSize:"0.8rem" }}>+ Platillo</button>
+        <button type="button" className="secondary-button" onClick={() => setShowCategorySelector(!showCategorySelector)} 
+          style={{ fontSize:"0.8rem", background:"var(--blue-primary)", color:"white" }}>
+          {showCategorySelector ? "✕ Cerrar categorías" : "📁 Por categoría"}
+        </button>
+      </div>
+      {showCategorySelector && (
+        <div style={{ marginTop:"0.75rem", padding:"0.75rem", background:"var(--bg-secondary)", borderRadius:"var(--radius-md)", border:"1px solid var(--border)" }}>
+          <ProductsByCategorySelector onSelectProduct={handleCategorySelect} />
+        </div>
+      )}
+    </div>
+  );
+};
 
 /* Panel edición completa de pedido existente */
 const EditPanel = ({ sale, products, onSaved, onCancel }) => {
@@ -344,6 +365,17 @@ export const SalesPage = () => {
     }));
   };
 
+  const addItemByCategory = (product) => {
+    setForm((prev) => ({
+      ...prev,
+      items: [...prev.items, {
+        product_id: String(product.id),
+        quantity: 1,
+        unit_price: Number(product.sale_price)
+      }]
+    }));
+  };
+
   const submitSale = async (e) => {
     e.preventDefault();
     setError(""); setSubmitting(true);
@@ -400,6 +432,7 @@ export const SalesPage = () => {
               onChange={changeItem}
               onRemove={(idx) => setForm((p) => ({ ...p, items: p.items.filter((_,i) => i!==idx) }))}
               onAdd={() => setForm((p) => ({ ...p, items: [...p.items, emptyItem()] }))}
+              onAddByCategory={addItemByCategory}
             />
           </div>
 
