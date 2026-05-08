@@ -51,6 +51,37 @@ export const listProducts = async (filters = {}, businessId) => {
   return result.rows;
 };
 
+// Nuevo endpoint: Obtener productos agrupados por categorías
+export const listProductsByCategory = async (businessId) => {
+  const query = `
+    SELECT 
+      c.id,
+      c.name,
+      c.description,
+      c.status,
+      JSON_AGG(
+        JSON_BUILD_OBJECT(
+          'id', p.id,
+          'name', p.name,
+          'category_id', p.category_id,
+          'product_type', p.product_type,
+          'unit_measure', p.unit_measure,
+          'purchase_price', p.purchase_price,
+          'sale_price', p.sale_price,
+          'status', p.status
+        ) ORDER BY p.id
+      ) as products
+    FROM categories c
+    LEFT JOIN products p ON c.id = p.category_id AND p.business_id = $1 AND p.status = 'active'
+    WHERE c.business_id = $1 AND c.status = 'active'
+    GROUP BY c.id, c.name, c.description, c.status
+    ORDER BY c.id
+  `;
+
+  const result = await pool.query(query, [businessId]);
+  return result.rows;
+};
+
 export const createProduct = async (payload, businessId) => {
   required(payload.name, "nombre");
   required(payload.category_id, "categoría");

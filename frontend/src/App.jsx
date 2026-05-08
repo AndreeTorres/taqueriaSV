@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProductsDebug } from "./components/ProductsDebug";
 import { AppShell } from "./layout/AppShell";
 import { ContabilidadPage } from "./pages/ContabilidadPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -20,6 +21,14 @@ const App = () => (
       }
     >
       <Route index element={<DashboardPage />} />
+      <Route
+        path="debug-productos"
+        element={
+          <ProtectedRoute roles={["administrador"]}>
+            <ProductsDebug />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="ventas"
         element={

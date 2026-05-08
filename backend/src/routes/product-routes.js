@@ -1,11 +1,18 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { asyncHandler } from "../utils/async-handler.js";
-import { createProduct, listProducts, updateProduct, deleteProduct } from "../services/product-service.js";
+import { createProduct, listProducts, listProductsByCategory, updateProduct, deleteProduct } from "../services/product-service.js";
 
 const router = Router();
 
 router.use(authenticate);
+
+router.get(
+  "/by-category",
+  asyncHandler(async (req, res) => {
+    res.json(await listProductsByCategory(req.user.businessId));
+  })
+);
 
 router.get(
   "/",
